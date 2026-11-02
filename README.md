@@ -13,7 +13,7 @@ Every push builds a test APK (workflow **Android app**). To install it, open the
 2. Publish a release, or run **Play Store build** by hand. The artifact `gridquake-play` holds the signed `.aab` for Google Play.
 
 ## Status
-- Game: the current prototype, offline only. Online features (leaderboards, duels, friends) still need to be wired to the Supabase functions `gq_*`.
+- Online: leaderboards (world, week, friends), friends, duels (random and friend), campaign stars, recovery code and account deletion run on the Supabase functions `gq_*` (project seed-and-destroy, schema `gridquake`), with an anonymous login per device, the same way as Seed & Destroy. Without a connection, Classic and Campaign keep working.
 - Ads: still placeholders in the game. The AdMob plugin is in the build, but with Google's test app id. The live id goes in `scripts/android.mjs` once Gridquake exists in AdMob.
 - Icon and splash screen: Capacitor defaults until `android-assets/res/` exists.
 - iOS: not yet (Apple Developer account needed first).

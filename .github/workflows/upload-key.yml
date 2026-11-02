@@ -1,0 +1,41 @@
+name: Create upload key
+
+# Run once, by hand (Actions > Create upload key > Run workflow).
+# Makes the upload key for Google Play with a random password, inside GitHub.
+# The result is a private artifact "upload-key" (kept 1 day) with:
+#   upload.keystore              the key itself: keep a backup somewhere safe
+#   upload.keystore.base64.txt   paste into the secret ANDROID_UPLOAD_KEYSTORE
+#   password.txt                 paste into the secret ANDROID_UPLOAD_PASSWORD
+# Google Play App Signing keeps the real app signing key; a lost upload key
+# can be reset through Google.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  key:
+    name: create-upload-key
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Generate the key (the password is never printed)
+        run: |
+          mkdir key && cd key
+          PASS=$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9' | cut -c1-24)
+          keytool -genkeypair -keystore upload.keystore -storetype PKCS12 \
+            -storepass "$PASS" -keypass "$PASS" -alias upload \
+            -keyalg RSA -keysize 4096 -validity 10000 \
+            -dname "CN=proqltc, O=proqltc, C=BE" > /dev/null 2>&1
+          base64 -w0 upload.keystore > upload.keystore.base64.txt
+          printf '%s' "$PASS" > password.txt
+          printf 'Gridquake upload key (alias: upload). Keep upload.keystore and password.txt safe.\n' > README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: upload-key
+          path: key/
+          retention-days: 1

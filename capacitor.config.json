@@ -1,0 +1,8 @@
+{
+  "appId": "be.proqltc.gridquake",
+  "appName": "Gridquake",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#f1f6fd"
+  }
+}

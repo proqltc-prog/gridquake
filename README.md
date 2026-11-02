@@ -14,6 +14,6 @@ A test APK is only built on request: run **Android app** by hand (Actions → An
 
 ## Status
 - Online: leaderboards (world, week, friends), friends, duels (random and friend), campaign stars, recovery code and account deletion run on the Supabase functions `gq_*` (project seed-and-destroy, schema `gridquake`), with an anonymous login per device, the same way as Seed & Destroy. Without a connection, Classic and Campaign keep working.
-- Ads: still placeholders in the game. The AdMob plugin is in the build, but with Google's test app id. The live id goes in `scripts/android.mjs` once Gridquake exists in AdMob.
+- Ads: AdMob rewarded video (+5 moves, clear the board, continue) and an interstitial after every 3rd game, with Google's EU consent form and a privacy-options button in Settings when Google requires it. Test APKs always use Google's test ads; only the Play Store build (`npm run android -- --release`) switches on live ads and the live app id. In a browser a short stand-in replaces the ad.
 - Icon and splash screen: Capacitor defaults until `android-assets/res/` exists.
 - iOS: not yet (Apple Developer account needed first).

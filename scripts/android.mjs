@@ -56,12 +56,18 @@ export function setTestSigning(gradle) {
   return gradle.replace(/^android \{/m, `android {${TEST_SIGNING}`);
 }
 
-// AdMob app id; without it the AdMob plugin crashes the app. For now every
-// build uses Google's test app. The live id for Gridquake is added here once
-// the app exists in AdMob (release builds then use it).
+// AdMob app id; without it the AdMob plugin crashes the app. Test builds use
+// Google's test app, the Play Store build (--release) the Gridquake app.
 export const ADMOB_TEST_APP_ID = 'ca-app-pub-3940256099942544~3347511713';
-export const ADMOB_LIVE_APP_ID = '';
-export const admobAppId = (release) => (release && ADMOB_LIVE_APP_ID ? ADMOB_LIVE_APP_ID : ADMOB_TEST_APP_ID);
+export const ADMOB_LIVE_APP_ID = 'ca-app-pub-8394022188610476~1310179751';
+export const admobAppId = (release) => (release ? ADMOB_LIVE_APP_ID : ADMOB_TEST_APP_ID);
+
+// Switches the copied game to live ads, for the Play Store build only. Test
+// APKs for the owner and testers never show live ads.
+export function setLiveAds(html) {
+  if (!html.includes('const AD_LIVE=false;')) throw new Error('AD_LIVE not found in index.html');
+  return html.replace('const AD_LIVE=false;', 'const AD_LIVE=true;');
+}
 
 // Adds the AdMob app id to the manifest, once.
 export function setAdMobAppId(manifest, id) {
@@ -118,12 +124,13 @@ export function main(argv = process.argv) {
   const { version } = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
   const { appId } = JSON.parse(readFileSync(join(ROOT, 'capacitor.config.json'), 'utf8'));
   copyWeb();
+  if (release) edit(join(ROOT, 'www', 'index.html'), setLiveAds);
   if (!existsSync(join(ROOT, 'android'))) run('npx cap add android');
   run('npx cap sync android');
   applySettings(appId, version, release);
   const sdk = targetSdk(readFileSync(join(ROOT, 'android', 'variables.gradle'), 'utf8'));
   if (sdk < PLAY_TARGET_SDK) throw new Error(`targetSdk ${sdk} is too old for Google Play (needs ${PLAY_TARGET_SDK})`);
-  console.log(`Android project ready: ${appId} version ${version} (code ${versionCode(version)}), targetSdk ${sdk}, ${admobAppId(release) === ADMOB_TEST_APP_ID ? 'test ads' : 'LIVE ads'}`);
+  console.log(`Android project ready: ${appId} version ${version} (code ${versionCode(version)}), targetSdk ${sdk}, ${release ? 'LIVE ads (Play Store)' : 'test ads'}`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();

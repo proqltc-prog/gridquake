@@ -1,13 +1,12 @@
 name: Android app
 
-# Builds the Android app on every push and pull request. The result
+# Builds the Android app ONLY when started by hand (Actions > Android app >
+# Run workflow), after the owner has approved a test APK. The result
 # is a debug APK that can be installed directly on an Android phone for
 # testing: open the run in the Actions tab and download "gridquake-apk".
 #
 # When a release is published the APK is also attached to it as gridquake.apk.
 on:
-  push:
-  pull_request:
   workflow_dispatch:
   release:
     types: [published]

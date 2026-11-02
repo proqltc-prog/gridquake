@@ -3,7 +3,7 @@
 Block-puzzle game for smartphones (`be.proqltc.gridquake`). It is built the same way as Seed & Destroy: the game is one web page (`index.html`), and Capacitor wraps it into an Android app.
 
 ## Test version on your phone
-Every push builds a test APK (workflow **Android app**). To install it, open the run in the **Actions** tab, download the artifact `gridquake-apk`, unzip it and install `app-debug.apk` on your Android phone. Every test build is signed with the same test key, so a new version installs over the old one.
+A test APK is only built on request: run **Android app** by hand (Actions → Android app → Run workflow), only after the owner approved it. Until then the game is tested in the web version. To install an APK, open the run in the **Actions** tab, download the artifact `gridquake-apk`, unzip it and install `app-debug.apk` on your Android phone. Every test build is signed with the same test key, so a new version installs over the old one.
 
 ## Google Play version
 1. Run **Create upload key** once (Actions → Create upload key → Run workflow). From the `upload-key` artifact:

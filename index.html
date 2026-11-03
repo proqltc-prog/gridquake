@@ -169,15 +169,16 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
 .langrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pill.gear{display:grid;place-items:center;padding:6px 10px}
 .card{max-height:calc(100vh - 48px);overflow-y:auto}
-.acc{border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden;text-align:left}
+.acc{flex:none;border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden;text-align:left}
 .acc+.acc{margin-top:8px}
 .acc-h{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:12px 12px;font-weight:800;font-size:15px;color:var(--fg);text-align:left}
-.acc-h .ai{font-size:18px;width:22px;text-align:center}.acc-h .at{flex:none}
-.acc-h .v{margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-weight:700;font-size:13px}
+.acc-h .ai{flex:none;font-size:18px;width:22px;text-align:center}.acc-h .at{flex:0 1 auto;min-width:min-content}
+.acc-h .v{margin-left:auto;flex:1 1 0;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-weight:700;font-size:13px}
 .acc-h .chev{flex:none;color:var(--muted);font-size:20px;line-height:1;transition:transform .2s}
-.acc.open .acc-h .chev{transform:rotate(90deg)}.acc.open{border-color:var(--accent)}
+.acc-h .v.short{flex:none}.acc.open .acc-h .chev{transform:rotate(90deg)}.acc.open{border-color:var(--accent)}
 .acc-h:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
 .acc-b{display:flex;flex-direction:column;gap:8px;padding:0 12px 14px}
+.acc-b .danger{font-size:14px;padding:10px 8px;line-height:1.25}
 .set-h{font-family:var(--display);font-weight:400;font-size:15px;margin:6px 0 0;text-align:left;color:var(--fg)}
 .set-v{margin:0;text-align:left;font-weight:800;color:var(--fg)!important}
 .card .note{font-size:13px;text-align:left}
@@ -1887,7 +1888,7 @@ function settingsCard(){
   THEMES.forEach(t=>{const b=el('button',t.id===themeId?'on':null,t.icon+' '+tx(t.name));b.setAttribute('role','radio');b.setAttribute('aria-checked',String(t.id===themeId));
     b.onclick=()=>{themeId=t.id;store.set('blockers-theme',t.id);applyTheme();if(screen==='camp')renderCamp();settingsCard();};seg.append(b);});
   const sec=(id,icon,title,value,body)=>{const box=el('div','acc'+(setOpen===id?' open':'')),hd=el('button','acc-h');hd.dataset.sec=id;
-    hd.setAttribute('aria-expanded',String(setOpen===id));hd.append(el('span','ai',icon),el('span','at',title),el('span','v',value),el('span','chev','›'));
+    hd.setAttribute('aria-expanded',String(setOpen===id));hd.append(el('span','ai',icon),el('span','at',title),el('span','v'+([...value].length<=6?' short':''),value),el('span','chev','›'));
     hd.onclick=()=>{setOpen=setOpen===id?null:id;settingsCard();};box.append(hd);
     if(setOpen===id){const bd=el('div','acc-b');bd.append(...body);box.append(bd);}return box;};
   const nick=NET.player?.nick||store.get('blockers-nick')||'–',th=THEMES.find(t=>t.id===themeId);
@@ -1905,6 +1906,10 @@ function settingsCard(){
   if(ADS.privacy)nodes.push(sec('privacy','🔒',tx('Privacy'),'',[btn('secondary',tx('Privacy-instellingen reclame'),()=>ADS.plugin.showPrivacyOptionsForm().catch(()=>{}))]));
   nodes.push(btn('secondary',tx('Sluiten'),()=>{setOpen=null;closeCard();}));
   showCard(nodes);
+  // the open section always fits in view, also on small phones
+  if(setOpen){const o=card.querySelector('.acc.open');if(o){const hd=o.querySelector('.acc-h');hd.focus({preventScroll:true});
+    requestAnimationFrame(()=>{const c=card.getBoundingClientRect(),r=o.getBoundingClientRect();
+      if(r.bottom>c.bottom-8)card.scrollTop+=r.bottom-c.bottom+16;if(r.top<c.top)card.scrollTop-=c.top-r.top+8;});}}
   if(setOpen!=='account')return;
   if(!online()){codeEl.textContent=tx('Herstelcode niet beschikbaar.');cp.hidden=true;rgo.disabled=true;}
   else getRecovery().then(c=>{codeEl.textContent=c||tx('Herstelcode niet beschikbaar.');if(!c)cp.hidden=true;});

@@ -51,6 +51,33 @@ h2.sec{font-family:var(--display);font-weight:400;font-size:18px;margin:6px 0 0;
 .me b{font-variant-numeric:tabular-nums}
 .me .who{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:800}
 .me small{color:var(--muted);font-weight:700}
+.me .md{margin-left:8px;font-weight:800;white-space:nowrap}
+.mapcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:2px solid var(--wc);border-radius:16px;padding:10px 12px;margin-top:8px;cursor:pointer;
+  background:linear-gradient(120deg,var(--bgA),var(--bgB));color:var(--fg);font:inherit;box-shadow:0 4px 0 color-mix(in srgb,var(--wc) 45%,transparent)}
+.mapcard .mt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.mapcard .mt b{font-family:var(--display);font-weight:400;font-size:18px;color:var(--fg)}
+.mapcard .mt span{font-size:13px;font-weight:700;color:var(--muted)}
+.mapcard .medals{display:flex;gap:2px;font-size:18px}
+.mapcard .medals span{filter:grayscale(1);opacity:.3}.mapcard .medals span.on{filter:none;opacity:1}
+.mapcard.locked{filter:grayscale(.85);opacity:.6;cursor:default}
+.mapcard .lk{font-size:18px}
+.mapgoals{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.mg{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 10px;font-size:13px;font-weight:700}
+.mg .mge{font-size:18px;filter:grayscale(1);opacity:.45}.mg.done .mge{filter:none;opacity:1}
+.mg .mtx{flex:1}.mg .mp{font-variant-numeric:tabular-nums;color:var(--muted)}.mg.done .mp{color:#1f9d55}
+.node.final{width:82px;height:82px;box-shadow:0 0 0 4px #ffd84d,0 5px 0 rgba(0,0,0,.16)}
+.obbox{display:flex;gap:10px;align-items:flex-start}.obbox canvas{flex:none}
+.card .sec2{font-weight:800;margin:4px 0 -4px;color:var(--fg)}
+.card .tip{font-size:13px;color:#8a5a00;background:#fff6dc;border-radius:10px;padding:8px 10px;margin:0;text-align:left}
+.goal.warn{border-color:#ffb199}.goal.hot{background:#ffe4dc;animation:nodepulse 1s ease-in-out infinite}
+.medalwin{display:flex;justify-content:center;gap:10px;font-size:54px;line-height:1}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;font-weight:700}
+.switch{min-width:64px}
+.themes{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.themebtn{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px solid var(--line);border-radius:12px;padding:6px 4px;background:var(--surface);font:inherit;font-size:12px;font-weight:800;color:var(--fg);cursor:pointer}
+.themebtn.on{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.themebtn.locked{opacity:.55;cursor:default}.themebtn small{font-weight:700;color:var(--muted)}
+.hint.tut{background:#fff3c4;border:2px solid #ffc94d;border-radius:12px;padding:8px 10px;color:#6b4a00;font-weight:800}
 .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:14px;padding:12px;font-weight:900;font-size:16px;box-shadow:0 3px 0 #d4dcea}
 .gbtn svg{flex:none}
 .warn{background:#fff4e0;border:1px solid #ffd79a;border-radius:12px;padding:10px 12px;color:#7a4b00;font-size:13px;line-height:1.4;text-align:left}
@@ -181,7 +208,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
     <div class="menu">
       <button class="mbtn hero" id="go-camp">
         <span class="ico" aria-hidden="true"><i style="--c:#ff8a3d"></i><i style="--c:#2fb4f0"></i><i style="--c:#9a6cf5"></i><i style="--c:#2fbf6a"></i></span>
-        <span class="txt"><b data-t>Campagne</b><span id="camp-sub">75 levels in 5 werelden, elk met een nieuw obstakel.</span></span>
+        <span class="txt"><b data-t>Campagne</b><span id="camp-sub">200 levels op 10 kaarten, elk met een nieuw obstakel.</span></span>
       </button>
       <button class="mbtn" id="go-classic">
         <span class="ico" aria-hidden="true"><i style="--c:#ff5f7e"></i><i style="--c:#ffd84d"></i><i style="--c:#3fc6ff"></i><i style="--c:#4fdc8a"></i></span>
@@ -197,7 +224,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
         <span class="txt"><b data-t>Klassement</b><span data-t>Wereld, deze week en je vrienden.</span></span>
       </button>
     </div>
-    <div class="me"><span class="who"><span id="me-name">–</span></span><span><span data-t>Record</span> <b id="me-best">0</b></span></div>
+    <div class="me"><span class="who"><span id="me-name">–</span></span><span><span data-t>Record</span> <b id="me-best">0</b><span class="md" id="me-medals" hidden></span></span></div>
     <button class="linkbtn" id="how" data-t>Hoe werken power-blokken?</button>
   </section>
 
@@ -248,7 +275,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const easeBack=t=>{const c=1.9;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)};
 const $=id=>document.getElementById(id);
 const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
-const I18N={"en":{"Campagne":"Campaign","Klassiek":"Classic","Solo spelen tot het bord vol zit. Jaag op je record.":"Play solo until the board is full. Chase your record.","Duel van 20 zetten met dezelfde blokken, tegen een willekeurige speler of een vriend.":"A 20-move duel with the same blocks, against a random player or a friend.","Klassement":"Leaderboard","Wereld, deze week en je vrienden.":"World, this week and your friends.","Record":"Record","Hoe werken power-blokken?":"How do power blocks work?","Wereld":"World","Week":"Week","Vrienden":"Friends","Geluid aan of uit":"Sound on or off","Terug naar menu":"Back to menu","Steengroeve":"Stone Quarry","IJsvlakte":"Ice Plains","Kettingfort":"Chain Fort","Moswoud":"Moss Woods","Meesterproef":"Master Trial","Het getal op een steen toont hoeveel treffers van een lijn of explosie hij nog nodig heeft.":"The number on a stone shows how many hits from a line or explosion it still needs.","IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.":"Ice lies under a square. Put a block on it and clear that line to break the ice.","Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.":"Chained blocks count toward a line. The first hit breaks the chain, the second clears the block.","Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.":"Every few moves, moss grows into an empty square next to it. Clear it before the board is overgrown.","Alles door elkaar, en er vallen stenen uit de lucht.":"Everything at once, and stones fall from the sky.","Raket":"Rocket","Bom":"Bomb","Prisma":"Prism","Raketten":"Rockets","Bommen":"Bombs","Prisma's":"Prisms","Steen!":"Stone!","Bonus: {x}!":"Bonus: {x}!","Krak!":"Crack!","Ketting ×{n}":"Chain ×{n}","SCHOON BORD!":"CLEAN BOARD!","Kettingreactie!":"Chain reaction!","Viervoud!":"Quadruple!","Driedubbel!":"Triple!","Kruisvuur!":"Crossfire!","Dubbel!":"Double!","Reeks van {n}!":"Streak of {n}!","Kleurlijn ×{n}":"Color line ×{n}","Mos groeit!":"Moss is growing!","NIEUW RECORD!":"NEW RECORD!","FINALE!":"FINALE!","Zetten":"Moves","Beste":"Best","NIEUW":"NEW","Jij":"You","{x} speelt later":"{x} plays later","Exact hetzelfde spel: jullie krijgen dezelfde blokken, bonussen en stenen. Na 20 zetten volgt de finale.":"Exactly the same game: you both get the same blocks, bonuses and stones. After 20 moves comes the finale.","Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.":"Clear 2 lines at once for a Rocket, 3 for a Bomb and a color line for a Prism.","Breek {n} steen":"Break {n} stone","Breek {n} stenen":"Break {n} stones","Breek al het ijs ({n} vakjes)":"Break all the ice ({n} squares)","Bevrijd alle {n} geketende blokken":"Free all {n} chained blocks","Ruim al het mos op":"Clear all the moss","Maak {n} {x}":"Make {n} {x}","Haal {n} punten":"Score {n} points","Haal level {n} om deze wereld te openen.":"Complete level {n} to unlock this world.","Level {n}, vergrendeld":"Level {n}, locked","Level {n}, {s} sterren":"Level {n}, {s} stars","Level {n}":"Level {n}","pittig level":"tough level","{n} zetten":"{n} moves","Spelen":"Play","Terug":"Back","LEVEL GEHAALD!":"LEVEL COMPLETE!","{n} zet over × 100":"{n} move left × 100","{n} zetten over × 100":"{n} moves left × 100","Level {n} gehaald!":"Level {n} complete!","★★ vanaf {a} · ★★★ vanaf {b}":"★★ from {a} · ★★★ from {b}","Alle sterren!":"All the stars!","Perfect gespeeld.":"Perfectly played.","Volgend level":"Next level","Opnieuw":"Try again","Nog {n} punten":"{n} points to go","Nog {n}":"{n} to go","Geen zetten meer":"Out of moves","Bord zit vol":"Board is full","Bijna! Dit moest nog:":"So close! Still to do:","+5 zetten · bekijk reclame":"+5 moves · watch an ad","Beloonde video":"Rewarded video","+5 zetten!":"+5 moves!","Bord opruimen · bekijk reclame":"Clear the board · watch an ad","Opgeruimd!":"Cleared!","Kaart":"Map","Hier komt de AdMob-advertentie":"The AdMob ad goes here","Reclame":"Ad","Nog {n} s":"{n} s left","Nieuw record!":"New record!","Geen plek meer":"No room left","Je record: {n}":"Your record: {n}","Doorgaan · bekijk reclame":"Continue · watch an ad","Opnieuw spelen":"Play again","Menu":"Menu","Tweede kans!":"Second chance!","Raket: wis 2 lijnen tegelijk. Ontploft over zijn hele rij en kolom.":"Rocket: clear 2 lines at once. Blasts its whole row and column.","Bom: wis 3 lijnen tegelijk. Blaast alles rondom weg.":"Bomb: clear 3 lines at once. Blows away everything around it.","Prisma: wis een lijn in één kleur of 4 lijnen tegelijk. Wist alle blokken in zijn kleur.":"Prism: clear a single-color line or 4 lines at once. Clears every block of its color.","Steen: valt elke 3 rondes. Raak hem 2 keer met een lijn of explosie om hem te breken.":"Stone: falls every 3 rounds. Hit it twice with a line or explosion to break it.","Power-blokken":"Power blocks","Neem een power-blok mee in een lijn en hij ontploft. Raakt de ontploffing een ander power-blok, dan krijg je een kettingreactie met dubbele, driedubbele … punten.":"Include a power block in a line and it explodes. If the blast hits another power block, you get a chain reaction worth double, triple … points.","Begrepen":"Got it","Level stoppen?":"Quit level?","Je voortgang in dit level gaat verloren.":"Your progress in this level will be lost.","Verder spelen":"Keep playing","Stoppen":"Quit","Spel stoppen?":"Quit game?","Je huidige score wordt ingediend als eindscore van dit duel.":"Your current score will be submitted as your final score for this duel.","Je score van dit spel gaat verloren.":"Your score for this game will be lost.","Opslag is vol.":"Storage is full.","Opslaan lukte niet. Probeer opnieuw.":"Saving failed. Please try again.","Speler":"Player","Bijvoorbeeld Blokbaas":"For example BlockBoss","Spelersnaam":"Player name","Opslaan":"Save","Kies je spelersnaam":"Choose your player name","Andere spelers zien deze naam in het klassement en bij duels.":"Other players see this name on the leaderboard and in duels.","Annuleren":"Cancel","75 levels in 5 werelden, elk met een nieuw obstakel.":"75 levels in 5 worlds, each with a new obstacle.","Nog geen spelersnaam":"No player name yet","Gast":"Guest","alleen dit toestel":"this device only","Multiplayer en klassementen vragen een account. Je scores als gast neem je mee.":"Multiplayer and leaderboards need an account. Your guest scores come with you.","Willekeurige tegenstander":"Random opponent","Jullie spelen 20 zetten met exact dezelfde blokken. Wie na de finale de hoogste score heeft, wint.":"You both play 20 moves with exactly the same blocks. Highest score after the finale wins.","Jouw beurt":"Your turn","{x} daagt je uit":"{x} challenges you","Willekeurig duel":"Random duel","Vriendenduel":"Friend duel","Speel":"Play","Daag een vriend uit":"Challenge a friend","Nog geen vrienden. Voeg ze toe met hun vriendcode in Klassement › Vrienden.":"No friends yet. Add them with their friend code in Leaderboard › Friends.","Uitdagen":"Challenge","Recente duels":"Recent duels","Nog niet gespeeld":"Not played yet","Zoekt tegenstander · jij {n}":"Looking for opponent · you {n}","Wacht op {x} · jij {n}":"Waiting for {x} · you {n}","Gewonnen":"Won","Verloren":"Lost","Gelijk":"Draw","Revanche":"Rematch","tegen {x}":"vs {x}","Tegenstander zoeken…":"Finding an opponent…","Even geduld.":"One moment.","Zoeken lukte niet":"Search failed","Controleer je verbinding en probeer opnieuw.":"Check your connection and try again.","Uitdagen lukte niet.":"Challenge failed.","Score ingediend":"Score submitted","Gewonnen!":"You won!","Gelijkspel":"Draw","Tegenstander":"Opponent","{x} speelt dezelfde blokken later. Je ziet de uitslag in Multiplayer.":"{x} will play the same blocks later. You’ll see the result in Multiplayer.","Zodra iemand je duel oppikt, zie je de uitslag in Multiplayer.":"As soon as someone takes your duel, you’ll see the result in Multiplayer.","Nog een duel":"Another duel","Laden…":"Loading…","Je vrienden konden niet laden.":"Your friends couldn’t be loaded.","Het klassement kon niet laden.":"The leaderboard couldn’t be loaded.","Kopieer uitnodiging":"Copy invitation","Gekopieerd ✓":"Copied ✓","Selecteer en kopieer de tekst":"Select and copy the text","Nodig een vriend uit":"Invite a friend","Je vriend krijgt de link naar Gridquake in de app-winkel en jouw vriendcode {x}.":"Your friend gets the link to Gridquake in the app store and your friend code {x}.","Delen…":"Share…","Sluiten":"Close","Speel Gridquake met mij! 🧱 Download de app: {x}":"Play Gridquake with me! 🧱 Get the app: {x}","Voeg me toe als vriend met mijn code: {x}":"Add me as a friend with my code: {x}","Week {n}. Begint elke maandag opnieuw.":"Week {n}. Resets every Monday.","Kies een spelersnaam om mee te doen":"Choose a player name to join in","Voeg vrienden toe met hun code hieronder.":"Add friends with their code below.","Nog geen scores. Speel Klassiek en zet de eerste!":"No scores yet. Play Classic and set the first one!","jij":"you","vriend":"friend","Jouw vriendcode":"Your friend code","Code van je vriend":"Your friend’s code","Vriendcode":"Friend code","Toevoegen":"Add","Code niet gevonden":"Code not found","Probeer opnieuw":"Try again","Aanmelden met Google":"Sign in with Google","Aanmelden…":"Signing in…","Aanmelden lukt nu niet":"Can’t sign in right now","Controleer je internetverbinding en probeer opnieuw. Je kunt ook eerst als gast spelen en later je account koppelen.":"Check your internet connection and try again. You can also play as a guest first and link your account later.","Opnieuw proberen":"Try again","Verder als gast":"Continue as guest","Als gast worden je scores alleen op dit toestel bewaard. Wissel je van smartphone of verwijder je de app, dan ben je alles kwijt. Multiplayer en klassementen vragen een account.":"As a guest, your scores are only saved on this device. If you switch phones or delete the app, you lose everything. Multiplayer and leaderboards need an account.","Welkom bij Gridquake":"Welcome to Gridquake","Hoe wil je spelen?":"How do you want to play?","Je scores, vrienden en duels blijven bewaard, ook op een nieuwe smartphone.":"Your scores, friends and duels are kept, even on a new phone.","Verder als gast op dit toestel":"Continue as guest on this device","Je account":"Your account","Aangemeld met Google als {x}.":"Signed in with Google as {x}.","Aangemeld met Google.":"Signed in with Google.","Je voortgang staat veilig in je account.":"Your progress is safe in your account.","Afmelden (verder als gast)":"Sign out (continue as guest)","Je speelt als gast":"You’re playing as a guest","Je scores staan alleen op dit toestel. Koppel een account om ze te bewaren en online te spelen. Je huidige record neem je mee.":"Your scores are only on this device. Link an account to keep them and play online. Your current record comes with you.","Taal":"Language","Multiplayer":"Multiplayer","Account":"Account","Instellingen":"Settings","Gebruikersnaam":"Username","Herstelcode":"Recovery code","Bewaar deze code. Op een nieuw toestel zet je er je account mee terug.":"Keep this code safe. On a new device, use it to restore your account.","Kopieer":"Copy","Herstelcode ingeven":"Enter recovery code","Herstellen":"Restore","Herstelcode niet beschikbaar.":"Recovery code not available.","Dit is je huidige account.":"This is your current account.","Account herstellen?":"Restore account?","De gegevens op dit toestel worden vervangen door die van {x}.":"The data on this device will be replaced by that of {x}.","Account hersteld":"Account restored","Gebruikersnaam en gegevens verwijderen":"Delete username and data","Alles verwijderen?":"Delete everything?","Je gebruikersnaam, scores, sterren en vrienden worden definitief gewist. Dit kan niet ongedaan worden.":"Your username, scores, stars and friends will be permanently erased. This cannot be undone.","Verwijderen":"Delete","Kies je taal":"Choose your language","Kies een gebruikersnaam":"Choose a username","3 tot 25 tekens: letters, cijfers, spaties, - of _.":"3 to 25 characters: letters, numbers, spaces, - or _.","Deze naam is al in gebruik.":"This name is already taken.","Volgende":"Next","Controleren…":"Checking…","Geen verbinding met de server. Klassiek en Campagne speel je altijd.":"No connection to the server. Classic and Campaign always work.","Deze naam is niet toegestaan.":"This name is not allowed.","Reclame laden…":"Loading ad…","Privacy-instellingen reclame":"Ad privacy settings","Tussenreclame (na elk 5e spel)":"Interstitial ad (after every 5th game)"},"fr":{"Campagne":"Campagne","Klassiek":"Classique","Solo spelen tot het bord vol zit. Jaag op je record.":"Jouez en solo jusqu’à ce que la grille soit pleine. Battez votre record.","Duel van 20 zetten met dezelfde blokken, tegen een willekeurige speler of een vriend.":"Un duel de 20 coups avec les mêmes blocs, contre un joueur au hasard ou un ami.","Klassement":"Classement","Wereld, deze week en je vrienden.":"Monde, cette semaine et vos amis.","Record":"Record","Hoe werken power-blokken?":"Comment fonctionnent les blocs bonus ?","Wereld":"Monde","Week":"Semaine","Vrienden":"Amis","Geluid aan of uit":"Son activé ou désactivé","Terug naar menu":"Retour au menu","Steengroeve":"La Carrière","IJsvlakte":"Plaine glacée","Kettingfort":"Fort des chaînes","Moswoud":"Bois moussu","Meesterproef":"L’Épreuve du maître","Het getal op een steen toont hoeveel treffers van een lijn of explosie hij nog nodig heeft.":"Le chiffre sur une pierre indique combien de coups de ligne ou d’explosion il lui faut encore.","IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.":"La glace est sous une case. Posez-y un bloc et effacez la ligne pour briser la glace.","Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.":"Les blocs enchaînés comptent pour une ligne. Le premier coup brise la chaîne, le second efface le bloc.","Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.":"Tous les quelques coups, la mousse gagne une case vide voisine. Effacez-la avant qu’elle n’envahisse la grille.","Alles door elkaar, en er vallen stenen uit de lucht.":"Tout à la fois, et des pierres tombent du ciel.","Raket":"Fusée","Bom":"Bombe","Prisma":"Prisme","Raketten":"Fusées","Bommen":"Bombes","Prisma's":"Prismes","Steen!":"Pierre !","Bonus: {x}!":"Bonus : {x} !","Krak!":"Crac !","Ketting ×{n}":"Chaîne ×{n}","SCHOON BORD!":"GRILLE VIDE !","Kettingreactie!":"Réaction en chaîne !","Viervoud!":"Quadruple !","Driedubbel!":"Triple !","Kruisvuur!":"Tir croisé !","Dubbel!":"Double !","Reeks van {n}!":"Série de {n} !","Kleurlijn ×{n}":"Ligne de couleur ×{n}","Mos groeit!":"La mousse pousse !","NIEUW RECORD!":"NOUVEAU RECORD !","FINALE!":"FINALE !","Zetten":"Coups","Beste":"Meilleur","NIEUW":"NOUVEAU","Jij":"Vous","{x} speelt later":"{x} jouera plus tard","Exact hetzelfde spel: jullie krijgen dezelfde blokken, bonussen en stenen. Na 20 zetten volgt de finale.":"Exactement la même partie : vous recevez les mêmes blocs, bonus et pierres. Après 20 coups, place à la finale.","Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.":"Effacez 2 lignes d’un coup pour une Fusée, 3 pour une Bombe et une ligne de couleur pour un Prisme.","Breek {n} steen":"Brisez {n} pierre","Breek {n} stenen":"Brisez {n} pierres","Breek al het ijs ({n} vakjes)":"Brisez toute la glace ({n} cases)","Bevrijd alle {n} geketende blokken":"Libérez les {n} blocs enchaînés","Ruim al het mos op":"Éliminez toute la mousse","Maak {n} {x}":"Créez {n} {x}","Haal {n} punten":"Marquez {n} points","Haal level {n} om deze wereld te openen.":"Réussissez le niveau {n} pour débloquer ce monde.","Level {n}, vergrendeld":"Niveau {n}, verrouillé","Level {n}, {s} sterren":"Niveau {n}, {s} étoiles","Level {n}":"Niveau {n}","pittig level":"niveau corsé","{n} zetten":"{n} coups","Spelen":"Jouer","Terug":"Retour","LEVEL GEHAALD!":"NIVEAU RÉUSSI !","{n} zet over × 100":"{n} coup restant × 100","{n} zetten over × 100":"{n} coups restants × 100","Level {n} gehaald!":"Niveau {n} réussi !","★★ vanaf {a} · ★★★ vanaf {b}":"★★ dès {a} · ★★★ dès {b}","Alle sterren!":"Toutes les étoiles !","Perfect gespeeld.":"Parfaitement joué.","Volgend level":"Niveau suivant","Opnieuw":"Rejouer","Nog {n} punten":"Encore {n} points","Nog {n}":"Encore {n}","Geen zetten meer":"Plus de coups","Bord zit vol":"Grille pleine","Bijna! Dit moest nog:":"Presque ! Il restait :","+5 zetten · bekijk reclame":"+5 coups · regarder une pub","Beloonde video":"Vidéo récompensée","+5 zetten!":"+5 coups !","Bord opruimen · bekijk reclame":"Libérer la grille · regarder une pub","Opgeruimd!":"Libéré !","Kaart":"Carte","Hier komt de AdMob-advertentie":"La publicité AdMob s’affiche ici","Reclame":"Publicité","Nog {n} s":"Encore {n} s","Nieuw record!":"Nouveau record !","Geen plek meer":"Plus de place","Je record: {n}":"Votre record : {n}","Doorgaan · bekijk reclame":"Continuer · regarder une pub","Opnieuw spelen":"Rejouer","Menu":"Menu","Tweede kans!":"Seconde chance !","Raket: wis 2 lijnen tegelijk. Ontploft over zijn hele rij en kolom.":"Fusée : effacez 2 lignes d’un coup. Explose sur toute sa ligne et sa colonne.","Bom: wis 3 lijnen tegelijk. Blaast alles rondom weg.":"Bombe : effacez 3 lignes d’un coup. Pulvérise tout autour d’elle.","Prisma: wis een lijn in één kleur of 4 lijnen tegelijk. Wist alle blokken in zijn kleur.":"Prisme : effacez une ligne d’une seule couleur ou 4 lignes d’un coup. Efface tous les blocs de sa couleur.","Steen: valt elke 3 rondes. Raak hem 2 keer met een lijn of explosie om hem te breken.":"Pierre : tombe tous les 3 tours. Touchez-la 2 fois avec une ligne ou une explosion pour la briser.","Power-blokken":"Blocs bonus","Neem een power-blok mee in een lijn en hij ontploft. Raakt de ontploffing een ander power-blok, dan krijg je een kettingreactie met dubbele, driedubbele … punten.":"Incluez un bloc bonus dans une ligne et il explose. Si l’explosion touche un autre bloc bonus, vous déclenchez une réaction en chaîne qui double, triple … les points.","Begrepen":"Compris","Level stoppen?":"Quitter le niveau ?","Je voortgang in dit level gaat verloren.":"Votre progression dans ce niveau sera perdue.","Verder spelen":"Continuer","Stoppen":"Quitter","Spel stoppen?":"Quitter la partie ?","Je huidige score wordt ingediend als eindscore van dit duel.":"Votre score actuel sera envoyé comme score final de ce duel.","Je score van dit spel gaat verloren.":"Le score de cette partie sera perdu.","Opslag is vol.":"Le stockage est plein.","Opslaan lukte niet. Probeer opnieuw.":"L’enregistrement a échoué. Réessayez.","Speler":"Joueur","Bijvoorbeeld Blokbaas":"Par exemple BlocChef","Spelersnaam":"Pseudo","Opslaan":"Enregistrer","Kies je spelersnaam":"Choisissez votre pseudo","Andere spelers zien deze naam in het klassement en bij duels.":"Les autres joueurs voient ce nom dans le classement et lors des duels.","Annuleren":"Annuler","75 levels in 5 werelden, elk met een nieuw obstakel.":"75 niveaux dans 5 mondes, chacun avec un nouvel obstacle.","Nog geen spelersnaam":"Pas encore de pseudo","Gast":"Invité","alleen dit toestel":"cet appareil uniquement","Multiplayer en klassementen vragen een account. Je scores als gast neem je mee.":"Le multijoueur et les classements nécessitent un compte. Vos scores d’invité sont conservés.","Willekeurige tegenstander":"Adversaire au hasard","Jullie spelen 20 zetten met exact dezelfde blokken. Wie na de finale de hoogste score heeft, wint.":"Vous jouez 20 coups avec exactement les mêmes blocs. Le meilleur score après la finale l’emporte.","Jouw beurt":"À vous","{x} daagt je uit":"{x} vous défie","Willekeurig duel":"Duel aléatoire","Vriendenduel":"Duel entre amis","Speel":"Jouer","Daag een vriend uit":"Défiez un ami","Nog geen vrienden. Voeg ze toe met hun vriendcode in Klassement › Vrienden.":"Pas encore d’amis. Ajoutez-les avec leur code ami dans Classement › Amis.","Uitdagen":"Défier","Recente duels":"Duels récents","Nog niet gespeeld":"Pas encore joué","Zoekt tegenstander · jij {n}":"Recherche d’adversaire · vous {n}","Wacht op {x} · jij {n}":"En attente de {x} · vous {n}","Gewonnen":"Gagné","Verloren":"Perdu","Gelijk":"Égalité","Revanche":"Revanche","tegen {x}":"contre {x}","Tegenstander zoeken…":"Recherche d’un adversaire…","Even geduld.":"Un instant.","Zoeken lukte niet":"La recherche a échoué","Controleer je verbinding en probeer opnieuw.":"Vérifiez votre connexion et réessayez.","Uitdagen lukte niet.":"Le défi a échoué.","Score ingediend":"Score envoyé","Gewonnen!":"Gagné !","Gelijkspel":"Égalité","Tegenstander":"Adversaire","{x} speelt dezelfde blokken later. Je ziet de uitslag in Multiplayer.":"{x} jouera les mêmes blocs plus tard. Vous verrez le résultat dans Multijoueur.","Zodra iemand je duel oppikt, zie je de uitslag in Multiplayer.":"Dès que quelqu’un relève votre duel, vous verrez le résultat dans Multijoueur.","Nog een duel":"Un autre duel","Laden…":"Chargement…","Je vrienden konden niet laden.":"Impossible de charger vos amis.","Het klassement kon niet laden.":"Impossible de charger le classement.","Kopieer uitnodiging":"Copier l’invitation","Gekopieerd ✓":"Copié ✓","Selecteer en kopieer de tekst":"Sélectionnez et copiez le texte","Nodig een vriend uit":"Invitez un ami","Je vriend krijgt de link naar Gridquake in de app-winkel en jouw vriendcode {x}.":"Votre ami reçoit le lien vers Gridquake dans la boutique d’applications et votre code ami {x}.","Delen…":"Partager…","Sluiten":"Fermer","Speel Gridquake met mij! 🧱 Download de app: {x}":"Joue à Gridquake avec moi ! 🧱 Télécharge l’appli : {x}","Voeg me toe als vriend met mijn code: {x}":"Ajoute-moi en ami avec mon code : {x}","Week {n}. Begint elke maandag opnieuw.":"Semaine {n}. Remise à zéro chaque lundi.","Kies een spelersnaam om mee te doen":"Choisissez un pseudo pour participer","Voeg vrienden toe met hun code hieronder.":"Ajoutez des amis avec leur code ci-dessous.","Nog geen scores. Speel Klassiek en zet de eerste!":"Pas encore de scores. Jouez en Classique et soyez le premier !","jij":"vous","vriend":"ami","Jouw vriendcode":"Votre code ami","Code van je vriend":"Code de votre ami","Vriendcode":"Code ami","Toevoegen":"Ajouter","Code niet gevonden":"Code introuvable","Probeer opnieuw":"Réessayez","Aanmelden met Google":"Se connecter avec Google","Aanmelden…":"Connexion…","Aanmelden lukt nu niet":"Connexion impossible pour le moment","Controleer je internetverbinding en probeer opnieuw. Je kunt ook eerst als gast spelen en later je account koppelen.":"Vérifiez votre connexion Internet et réessayez. Vous pouvez aussi jouer en invité et lier votre compte plus tard.","Opnieuw proberen":"Réessayer","Verder als gast":"Continuer en invité","Als gast worden je scores alleen op dit toestel bewaard. Wissel je van smartphone of verwijder je de app, dan ben je alles kwijt. Multiplayer en klassementen vragen een account.":"En invité, vos scores ne sont enregistrés que sur cet appareil. Si vous changez de téléphone ou supprimez l’appli, vous perdez tout. Le multijoueur et les classements nécessitent un compte.","Welkom bij Gridquake":"Bienvenue dans Gridquake","Hoe wil je spelen?":"Comment voulez-vous jouer ?","Je scores, vrienden en duels blijven bewaard, ook op een nieuwe smartphone.":"Vos scores, amis et duels sont conservés, même sur un nouveau téléphone.","Verder als gast op dit toestel":"Continuer en invité sur cet appareil","Je account":"Votre compte","Aangemeld met Google als {x}.":"Connecté avec Google en tant que {x}.","Aangemeld met Google.":"Connecté avec Google.","Je voortgang staat veilig in je account.":"Votre progression est sauvegardée dans votre compte.","Afmelden (verder als gast)":"Se déconnecter (continuer en invité)","Je speelt als gast":"Vous jouez en invité","Je scores staan alleen op dit toestel. Koppel een account om ze te bewaren en online te spelen. Je huidige record neem je mee.":"Vos scores ne sont que sur cet appareil. Liez un compte pour les conserver et jouer en ligne. Votre record actuel est conservé.","Taal":"Langue","Multiplayer":"Multijoueur","Account":"Compte","Instellingen":"Paramètres","Gebruikersnaam":"Nom d’utilisateur","Herstelcode":"Code de récupération","Bewaar deze code. Op een nieuw toestel zet je er je account mee terug.":"Conservez ce code. Sur un nouvel appareil, il permet de récupérer votre compte.","Kopieer":"Copier","Herstelcode ingeven":"Saisir un code de récupération","Herstellen":"Récupérer","Herstelcode niet beschikbaar.":"Code de récupération indisponible.","Dit is je huidige account.":"C’est votre compte actuel.","Account herstellen?":"Récupérer le compte ?","De gegevens op dit toestel worden vervangen door die van {x}.":"Les données de cet appareil seront remplacées par celles de {x}.","Account hersteld":"Compte récupéré","Gebruikersnaam en gegevens verwijderen":"Supprimer le nom d’utilisateur et les données","Alles verwijderen?":"Tout supprimer ?","Je gebruikersnaam, scores, sterren en vrienden worden definitief gewist. Dit kan niet ongedaan worden.":"Votre nom d’utilisateur, vos scores, étoiles et amis seront définitivement effacés. Cette action est irréversible.","Verwijderen":"Supprimer","Kies je taal":"Choisissez votre langue","Kies een gebruikersnaam":"Choisissez un nom d’utilisateur","3 tot 25 tekens: letters, cijfers, spaties, - of _.":"3 à 25 caractères : lettres, chiffres, espaces, - ou _.","Deze naam is al in gebruik.":"Ce nom est déjà pris.","Volgende":"Suivant","Controleren…":"Vérification…","Geen verbinding met de server. Klassiek en Campagne speel je altijd.":"Pas de connexion au serveur. Les modes Classique et Campagne fonctionnent toujours.","Deze naam is niet toegestaan.":"Ce nom n'est pas autorisé.","Reclame laden…":"Chargement de la pub…","Privacy-instellingen reclame":"Confidentialité des pubs","Tussenreclame (na elk 5e spel)":"Publicité interstitielle (après chaque 5e partie)"},"de":{"Campagne":"Kampagne","Klassiek":"Klassisch","Solo spelen tot het bord vol zit. Jaag op je record.":"Spiel allein, bis das Brett voll ist. Jag deinen Rekord.","Duel van 20 zetten met dezelfde blokken, tegen een willekeurige speler of een vriend.":"Ein Duell über 20 Züge mit denselben Blöcken, gegen einen zufälligen Spieler oder einen Freund.","Klassement":"Rangliste","Wereld, deze week en je vrienden.":"Welt, diese Woche und deine Freunde.","Record":"Rekord","Hoe werken power-blokken?":"Wie funktionieren Power-Blöcke?","Wereld":"Welt","Week":"Woche","Vrienden":"Freunde","Geluid aan of uit":"Ton an oder aus","Terug naar menu":"Zurück zum Menü","Steengroeve":"Steinbruch","IJsvlakte":"Eisebene","Kettingfort":"Kettenburg","Moswoud":"Mooswald","Meesterproef":"Meisterprüfung","Het getal op een steen toont hoeveel treffers van een lijn of explosie hij nog nodig heeft.":"Die Zahl auf einem Stein zeigt, wie viele Treffer durch eine Linie oder Explosion er noch braucht.","IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.":"Eis liegt unter einem Feld. Leg einen Block darauf und räum die Linie ab, um das Eis zu brechen.","Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.":"Angekettete Blöcke zählen für eine Linie. Der erste Treffer sprengt die Kette, der zweite entfernt den Block.","Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.":"Alle paar Züge wächst Moos auf ein leeres Nachbarfeld. Räum es weg, bevor das Brett zuwächst.","Alles door elkaar, en er vallen stenen uit de lucht.":"Alles durcheinander, und Steine fallen vom Himmel.","Raket":"Rakete","Bom":"Bombe","Prisma":"Prisma","Raketten":"Raketen","Bommen":"Bomben","Prisma's":"Prismen","Steen!":"Stein!","Bonus: {x}!":"Bonus: {x}!","Krak!":"Krach!","Ketting ×{n}":"Kette ×{n}","SCHOON BORD!":"BRETT LEER!","Kettingreactie!":"Kettenreaktion!","Viervoud!":"Vierfach!","Driedubbel!":"Dreifach!","Kruisvuur!":"Kreuzfeuer!","Dubbel!":"Doppelt!","Reeks van {n}!":"{n}er-Serie!","Kleurlijn ×{n}":"Farblinie ×{n}","Mos groeit!":"Moos wächst!","NIEUW RECORD!":"NEUER REKORD!","FINALE!":"FINALE!","Zetten":"Züge","Beste":"Bestwert","NIEUW":"NEU","Jij":"Du","{x} speelt later":"{x} spielt später","Exact hetzelfde spel: jullie krijgen dezelfde blokken, bonussen en stenen. Na 20 zetten volgt de finale.":"Exakt dasselbe Spiel: Ihr bekommt dieselben Blöcke, Boni und Steine. Nach 20 Zügen folgt das Finale.","Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.":"Räum 2 Linien gleichzeitig ab für eine Rakete, 3 für eine Bombe und eine Farblinie für ein Prisma.","Breek {n} steen":"Zerstöre {n} Stein","Breek {n} stenen":"Zerstöre {n} Steine","Breek al het ijs ({n} vakjes)":"Brich das ganze Eis ({n} Felder)","Bevrijd alle {n} geketende blokken":"Befreie alle {n} angeketteten Blöcke","Ruim al het mos op":"Entferne das ganze Moos","Maak {n} {x}":"Erzeuge {n} {x}","Haal {n} punten":"Erreiche {n} Punkte","Haal level {n} om deze wereld te openen.":"Schaff Level {n}, um diese Welt freizuschalten.","Level {n}, vergrendeld":"Level {n}, gesperrt","Level {n}, {s} sterren":"Level {n}, {s} Sterne","Level {n}":"Level {n}","pittig level":"knackiges Level","{n} zetten":"{n} Züge","Spelen":"Spielen","Terug":"Zurück","LEVEL GEHAALD!":"LEVEL GESCHAFFT!","{n} zet over × 100":"{n} Zug übrig × 100","{n} zetten over × 100":"{n} Züge übrig × 100","Level {n} gehaald!":"Level {n} geschafft!","★★ vanaf {a} · ★★★ vanaf {b}":"★★ ab {a} · ★★★ ab {b}","Alle sterren!":"Alle Sterne!","Perfect gespeeld.":"Perfekt gespielt.","Volgend level":"Nächstes Level","Opnieuw":"Nochmal","Nog {n} punten":"Noch {n} Punkte","Nog {n}":"Noch {n}","Geen zetten meer":"Keine Züge mehr","Bord zit vol":"Brett ist voll","Bijna! Dit moest nog:":"Fast! Das fehlte noch:","+5 zetten · bekijk reclame":"+5 Züge · Werbung ansehen","Beloonde video":"Belohnungsvideo","+5 zetten!":"+5 Züge!","Bord opruimen · bekijk reclame":"Brett aufräumen · Werbung ansehen","Opgeruimd!":"Aufgeräumt!","Kaart":"Karte","Hier komt de AdMob-advertentie":"Hier erscheint die AdMob-Anzeige","Reclame":"Werbung","Nog {n} s":"Noch {n} s","Nieuw record!":"Neuer Rekord!","Geen plek meer":"Kein Platz mehr","Je record: {n}":"Dein Rekord: {n}","Doorgaan · bekijk reclame":"Weiterspielen · Werbung ansehen","Opnieuw spelen":"Nochmal spielen","Menu":"Menü","Tweede kans!":"Zweite Chance!","Raket: wis 2 lijnen tegelijk. Ontploft over zijn hele rij en kolom.":"Rakete: Räum 2 Linien gleichzeitig ab. Explodiert über ihre ganze Zeile und Spalte.","Bom: wis 3 lijnen tegelijk. Blaast alles rondom weg.":"Bombe: Räum 3 Linien gleichzeitig ab. Sprengt alles rundherum weg.","Prisma: wis een lijn in één kleur of 4 lijnen tegelijk. Wist alle blokken in zijn kleur.":"Prisma: Räum eine einfarbige Linie oder 4 Linien gleichzeitig ab. Entfernt alle Blöcke seiner Farbe.","Steen: valt elke 3 rondes. Raak hem 2 keer met een lijn of explosie om hem te breken.":"Stein: Fällt alle 3 Runden. Triff ihn zweimal mit einer Linie oder Explosion, um ihn zu zerstören.","Power-blokken":"Power-Blöcke","Neem een power-blok mee in een lijn en hij ontploft. Raakt de ontploffing een ander power-blok, dan krijg je een kettingreactie met dubbele, driedubbele … punten.":"Nimm einen Power-Block in eine Linie mit, und er explodiert. Trifft die Explosion einen anderen Power-Block, gibt es eine Kettenreaktion mit doppelten, dreifachen … Punkten.","Begrepen":"Verstanden","Level stoppen?":"Level beenden?","Je voortgang in dit level gaat verloren.":"Dein Fortschritt in diesem Level geht verloren.","Verder spelen":"Weiterspielen","Stoppen":"Beenden","Spel stoppen?":"Spiel beenden?","Je huidige score wordt ingediend als eindscore van dit duel.":"Dein aktueller Punktestand wird als Endergebnis dieses Duells eingereicht.","Je score van dit spel gaat verloren.":"Dein Punktestand dieses Spiels geht verloren.","Opslag is vol.":"Speicher ist voll.","Opslaan lukte niet. Probeer opnieuw.":"Speichern fehlgeschlagen. Versuch es nochmal.","Speler":"Spieler","Bijvoorbeeld Blokbaas":"Zum Beispiel BlockBoss","Spelersnaam":"Spielername","Opslaan":"Speichern","Kies je spelersnaam":"Wähl deinen Spielernamen","Andere spelers zien deze naam in het klassement en bij duels.":"Andere Spieler sehen diesen Namen in der Rangliste und bei Duellen.","Annuleren":"Abbrechen","75 levels in 5 werelden, elk met een nieuw obstakel.":"75 Level in 5 Welten, jede mit einem neuen Hindernis.","Nog geen spelersnaam":"Noch kein Spielername","Gast":"Gast","alleen dit toestel":"nur dieses Gerät","Multiplayer en klassementen vragen een account. Je scores als gast neem je mee.":"Mehrspieler und Ranglisten brauchen ein Konto. Deine Gast-Punkte nimmst du mit.","Willekeurige tegenstander":"Zufälliger Gegner","Jullie spelen 20 zetten met exact dezelfde blokken. Wie na de finale de hoogste score heeft, wint.":"Ihr spielt 20 Züge mit exakt denselben Blöcken. Wer nach dem Finale vorn liegt, gewinnt.","Jouw beurt":"Du bist dran","{x} daagt je uit":"{x} fordert dich heraus","Willekeurig duel":"Zufallsduell","Vriendenduel":"Freundesduell","Speel":"Spielen","Daag een vriend uit":"Fordere einen Freund heraus","Nog geen vrienden. Voeg ze toe met hun vriendcode in Klassement › Vrienden.":"Noch keine Freunde. Füge sie mit ihrem Freundescode unter Rangliste › Freunde hinzu.","Uitdagen":"Herausfordern","Recente duels":"Letzte Duelle","Nog niet gespeeld":"Noch nicht gespielt","Zoekt tegenstander · jij {n}":"Sucht Gegner · du {n}","Wacht op {x} · jij {n}":"Wartet auf {x} · du {n}","Gewonnen":"Gewonnen","Verloren":"Verloren","Gelijk":"Unentschieden","Revanche":"Revanche","tegen {x}":"gegen {x}","Tegenstander zoeken…":"Gegner wird gesucht…","Even geduld.":"Einen Moment.","Zoeken lukte niet":"Suche fehlgeschlagen","Controleer je verbinding en probeer opnieuw.":"Prüf deine Verbindung und versuch es nochmal.","Uitdagen lukte niet.":"Herausforderung fehlgeschlagen.","Score ingediend":"Ergebnis eingereicht","Gewonnen!":"Gewonnen!","Gelijkspel":"Unentschieden","Tegenstander":"Gegner","{x} speelt dezelfde blokken later. Je ziet de uitslag in Multiplayer.":"{x} spielt dieselben Blöcke später. Das Ergebnis siehst du unter Mehrspieler.","Zodra iemand je duel oppikt, zie je de uitslag in Multiplayer.":"Sobald jemand dein Duell annimmt, siehst du das Ergebnis unter Mehrspieler.","Nog een duel":"Noch ein Duell","Laden…":"Wird geladen…","Je vrienden konden niet laden.":"Deine Freunde konnten nicht geladen werden.","Het klassement kon niet laden.":"Die Rangliste konnte nicht geladen werden.","Kopieer uitnodiging":"Einladung kopieren","Gekopieerd ✓":"Kopiert ✓","Selecteer en kopieer de tekst":"Text markieren und kopieren","Nodig een vriend uit":"Lade einen Freund ein","Je vriend krijgt de link naar Gridquake in de app-winkel en jouw vriendcode {x}.":"Dein Freund bekommt den Link zu Gridquake im App-Store und deinen Freundescode {x}.","Delen…":"Teilen…","Sluiten":"Schließen","Speel Gridquake met mij! 🧱 Download de app: {x}":"Spiel Gridquake mit mir! 🧱 Hol dir die App: {x}","Voeg me toe als vriend met mijn code: {x}":"Füg mich als Freund hinzu mit meinem Code: {x}","Week {n}. Begint elke maandag opnieuw.":"Woche {n}. Startet jeden Montag neu.","Kies een spelersnaam om mee te doen":"Wähl einen Spielernamen, um mitzumachen","Voeg vrienden toe met hun code hieronder.":"Füge Freunde unten mit ihrem Code hinzu.","Nog geen scores. Speel Klassiek en zet de eerste!":"Noch keine Punkte. Spiel Klassisch und setz den ersten!","jij":"du","vriend":"Freund","Jouw vriendcode":"Dein Freundescode","Code van je vriend":"Code deines Freundes","Vriendcode":"Freundescode","Toevoegen":"Hinzufügen","Code niet gevonden":"Code nicht gefunden","Probeer opnieuw":"Versuch es nochmal","Aanmelden met Google":"Mit Google anmelden","Aanmelden…":"Anmeldung…","Aanmelden lukt nu niet":"Anmeldung gerade nicht möglich","Controleer je internetverbinding en probeer opnieuw. Je kunt ook eerst als gast spelen en later je account koppelen.":"Prüf deine Internetverbindung und versuch es nochmal. Du kannst auch erst als Gast spielen und dein Konto später verknüpfen.","Opnieuw proberen":"Erneut versuchen","Verder als gast":"Als Gast weiter","Als gast worden je scores alleen op dit toestel bewaard. Wissel je van smartphone of verwijder je de app, dan ben je alles kwijt. Multiplayer en klassementen vragen een account.":"Als Gast werden deine Punkte nur auf diesem Gerät gespeichert. Wechselst du das Handy oder löschst die App, ist alles weg. Mehrspieler und Ranglisten brauchen ein Konto.","Welkom bij Gridquake":"Willkommen bei Gridquake","Hoe wil je spelen?":"Wie möchtest du spielen?","Je scores, vrienden en duels blijven bewaard, ook op een nieuwe smartphone.":"Deine Punkte, Freunde und Duelle bleiben erhalten, auch auf einem neuen Handy.","Verder als gast op dit toestel":"Als Gast auf diesem Gerät weiter","Je account":"Dein Konto","Aangemeld met Google als {x}.":"Mit Google angemeldet als {x}.","Aangemeld met Google.":"Mit Google angemeldet.","Je voortgang staat veilig in je account.":"Dein Fortschritt ist in deinem Konto gesichert.","Afmelden (verder als gast)":"Abmelden (als Gast weiter)","Je speelt als gast":"Du spielst als Gast","Je scores staan alleen op dit toestel. Koppel een account om ze te bewaren en online te spelen. Je huidige record neem je mee.":"Deine Punkte sind nur auf diesem Gerät. Verknüpfe ein Konto, um sie zu sichern und online zu spielen. Deinen Rekord nimmst du mit.","Taal":"Sprache","Multiplayer":"Mehrspieler","Account":"Konto","Instellingen":"Einstellungen","Gebruikersnaam":"Benutzername","Herstelcode":"Wiederherstellungscode","Bewaar deze code. Op een nieuw toestel zet je er je account mee terug.":"Bewahre diesen Code auf. Auf einem neuen Gerät stellst du damit dein Konto wieder her.","Kopieer":"Kopieren","Herstelcode ingeven":"Wiederherstellungscode eingeben","Herstellen":"Wiederherstellen","Herstelcode niet beschikbaar.":"Wiederherstellungscode nicht verfügbar.","Dit is je huidige account.":"Das ist dein aktuelles Konto.","Account herstellen?":"Konto wiederherstellen?","De gegevens op dit toestel worden vervangen door die van {x}.":"Die Daten auf diesem Gerät werden durch die von {x} ersetzt.","Account hersteld":"Konto wiederhergestellt","Gebruikersnaam en gegevens verwijderen":"Benutzername und Daten löschen","Alles verwijderen?":"Alles löschen?","Je gebruikersnaam, scores, sterren en vrienden worden definitief gewist. Dit kan niet ongedaan worden.":"Dein Benutzername, deine Punkte, Sterne und Freunde werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.","Verwijderen":"Löschen","Kies je taal":"Wähle deine Sprache","Kies een gebruikersnaam":"Wähle einen Benutzernamen","3 tot 25 tekens: letters, cijfers, spaties, - of _.":"3 bis 25 Zeichen: Buchstaben, Ziffern, Leerzeichen, - oder _.","Deze naam is al in gebruik.":"Dieser Name ist schon vergeben.","Volgende":"Weiter","Controleren…":"Wird geprüft…","Geen verbinding met de server. Klassiek en Campagne speel je altijd.":"Keine Verbindung zum Server. Klassisch und Kampagne gehen immer.","Deze naam is niet toegestaan.":"Dieser Name ist nicht erlaubt.","Reclame laden…":"Werbung wird geladen…","Privacy-instellingen reclame":"Datenschutz für Werbung","Tussenreclame (na elk 5e spel)":"Zwischenwerbung (nach jedem 5. Spiel)"}};
+const I18N={"en":{"Campagne":"Campaign","Klassiek":"Classic","Solo spelen tot het bord vol zit. Jaag op je record.":"Play solo until the board is full. Chase your record.","Duel van 20 zetten met dezelfde blokken, tegen een willekeurige speler of een vriend.":"A 20-move duel with the same blocks, against a random player or a friend.","Klassement":"Leaderboard","Wereld, deze week en je vrienden.":"World, this week and your friends.","Record":"Record","Hoe werken power-blokken?":"How do power blocks work?","Wereld":"World","Week":"Week","Vrienden":"Friends","Geluid aan of uit":"Sound on or off","Terug naar menu":"Back to menu","Steengroeve":"Stone Quarry","IJsvlakte":"Ice Plains","Kettingfort":"Chain Fort","Moswoud":"Moss Woods","Meesterproef":"Master Trial","Het getal op een steen toont hoeveel treffers van een lijn of explosie hij nog nodig heeft.":"The number on a stone shows how many hits from a line or explosion it still needs.","IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.":"Ice lies under a square. Put a block on it and clear that line to break the ice.","Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.":"Chained blocks count toward a line. The first hit breaks the chain, the second clears the block.","Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.":"Every few moves, moss grows into an empty square next to it. Clear it before the board is overgrown.","Alles door elkaar, en er vallen stenen uit de lucht.":"Everything at once, and stones fall from the sky.","Raket":"Rocket","Bom":"Bomb","Prisma":"Prism","Raketten":"Rockets","Bommen":"Bombs","Prisma's":"Prisms","Steen!":"Stone!","Bonus: {x}!":"Bonus: {x}!","Krak!":"Crack!","Ketting ×{n}":"Chain ×{n}","SCHOON BORD!":"CLEAN BOARD!","Kettingreactie!":"Chain reaction!","Viervoud!":"Quadruple!","Driedubbel!":"Triple!","Kruisvuur!":"Crossfire!","Dubbel!":"Double!","Reeks van {n}!":"Streak of {n}!","Kleurlijn ×{n}":"Color line ×{n}","Mos groeit!":"Moss is growing!","NIEUW RECORD!":"NEW RECORD!","FINALE!":"FINALE!","Zetten":"Moves","Beste":"Best","NIEUW":"NEW","Jij":"You","{x} speelt later":"{x} plays later","Exact hetzelfde spel: jullie krijgen dezelfde blokken, bonussen en stenen. Na 20 zetten volgt de finale.":"Exactly the same game: you both get the same blocks, bonuses and stones. After 20 moves comes the finale.","Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.":"Clear 2 lines at once for a Rocket, 3 for a Bomb and a color line for a Prism.","Breek {n} steen":"Break {n} stone","Breek {n} stenen":"Break {n} stones","Breek al het ijs ({n} vakjes)":"Break all the ice ({n} squares)","Bevrijd alle {n} geketende blokken":"Free all {n} chained blocks","Ruim al het mos op":"Clear all the moss","Maak {n} {x}":"Make {n} {x}","Haal {n} punten":"Score {n} points","Haal level {n} om deze wereld te openen.":"Complete level {n} to unlock this world.","Level {n}, vergrendeld":"Level {n}, locked","Level {n}, {s} sterren":"Level {n}, {s} stars","Level {n}":"Level {n}","pittig level":"tough level","{n} zetten":"{n} moves","Spelen":"Play","Terug":"Back","LEVEL GEHAALD!":"LEVEL COMPLETE!","{n} zet over × 100":"{n} move left × 100","{n} zetten over × 100":"{n} moves left × 100","Level {n} gehaald!":"Level {n} complete!","★★ vanaf {a} · ★★★ vanaf {b}":"★★ from {a} · ★★★ from {b}","Alle sterren!":"All the stars!","Perfect gespeeld.":"Perfectly played.","Volgend level":"Next level","Opnieuw":"Try again","Nog {n} punten":"{n} points to go","Nog {n}":"{n} to go","Geen zetten meer":"Out of moves","Bord zit vol":"Board is full","Bijna! Dit moest nog:":"So close! Still to do:","+5 zetten · bekijk reclame":"+5 moves · watch an ad","Beloonde video":"Rewarded video","+5 zetten!":"+5 moves!","Bord opruimen · bekijk reclame":"Clear the board · watch an ad","Opgeruimd!":"Cleared!","Kaart":"Map","Hier komt de AdMob-advertentie":"The AdMob ad goes here","Reclame":"Ad","Nog {n} s":"{n} s left","Nieuw record!":"New record!","Geen plek meer":"No room left","Je record: {n}":"Your record: {n}","Doorgaan · bekijk reclame":"Continue · watch an ad","Opnieuw spelen":"Play again","Menu":"Menu","Tweede kans!":"Second chance!","Raket: wis 2 lijnen tegelijk. Ontploft over zijn hele rij en kolom.":"Rocket: clear 2 lines at once. Blasts its whole row and column.","Bom: wis 3 lijnen tegelijk. Blaast alles rondom weg.":"Bomb: clear 3 lines at once. Blows away everything around it.","Prisma: wis een lijn in één kleur of 4 lijnen tegelijk. Wist alle blokken in zijn kleur.":"Prism: clear a single-color line or 4 lines at once. Clears every block of its color.","Steen: valt elke 3 rondes. Raak hem 2 keer met een lijn of explosie om hem te breken.":"Stone: falls every 3 rounds. Hit it twice with a line or explosion to break it.","Power-blokken":"Power blocks","Neem een power-blok mee in een lijn en hij ontploft. Raakt de ontploffing een ander power-blok, dan krijg je een kettingreactie met dubbele, driedubbele … punten.":"Include a power block in a line and it explodes. If the blast hits another power block, you get a chain reaction worth double, triple … points.","Begrepen":"Got it","Level stoppen?":"Quit level?","Je voortgang in dit level gaat verloren.":"Your progress in this level will be lost.","Verder spelen":"Keep playing","Stoppen":"Quit","Spel stoppen?":"Quit game?","Je huidige score wordt ingediend als eindscore van dit duel.":"Your current score will be submitted as your final score for this duel.","Je score van dit spel gaat verloren.":"Your score for this game will be lost.","Opslag is vol.":"Storage is full.","Opslaan lukte niet. Probeer opnieuw.":"Saving failed. Please try again.","Speler":"Player","Bijvoorbeeld Blokbaas":"For example BlockBoss","Spelersnaam":"Player name","Opslaan":"Save","Kies je spelersnaam":"Choose your player name","Andere spelers zien deze naam in het klassement en bij duels.":"Other players see this name on the leaderboard and in duels.","Annuleren":"Cancel","200 levels op 10 kaarten, elk met een nieuw obstakel.":"200 levels on 10 maps, each with a new obstacle.","Nog geen spelersnaam":"No player name yet","Gast":"Guest","alleen dit toestel":"this device only","Multiplayer en klassementen vragen een account. Je scores als gast neem je mee.":"Multiplayer and leaderboards need an account. Your guest scores come with you.","Willekeurige tegenstander":"Random opponent","Jullie spelen 20 zetten met exact dezelfde blokken. Wie na de finale de hoogste score heeft, wint.":"You both play 20 moves with exactly the same blocks. Highest score after the finale wins.","Jouw beurt":"Your turn","{x} daagt je uit":"{x} challenges you","Willekeurig duel":"Random duel","Vriendenduel":"Friend duel","Speel":"Play","Daag een vriend uit":"Challenge a friend","Nog geen vrienden. Voeg ze toe met hun vriendcode in Klassement › Vrienden.":"No friends yet. Add them with their friend code in Leaderboard › Friends.","Uitdagen":"Challenge","Recente duels":"Recent duels","Nog niet gespeeld":"Not played yet","Zoekt tegenstander · jij {n}":"Looking for opponent · you {n}","Wacht op {x} · jij {n}":"Waiting for {x} · you {n}","Gewonnen":"Won","Verloren":"Lost","Gelijk":"Draw","Revanche":"Rematch","tegen {x}":"vs {x}","Tegenstander zoeken…":"Finding an opponent…","Even geduld.":"One moment.","Zoeken lukte niet":"Search failed","Controleer je verbinding en probeer opnieuw.":"Check your connection and try again.","Uitdagen lukte niet.":"Challenge failed.","Score ingediend":"Score submitted","Gewonnen!":"You won!","Gelijkspel":"Draw","Tegenstander":"Opponent","{x} speelt dezelfde blokken later. Je ziet de uitslag in Multiplayer.":"{x} will play the same blocks later. You’ll see the result in Multiplayer.","Zodra iemand je duel oppikt, zie je de uitslag in Multiplayer.":"As soon as someone takes your duel, you’ll see the result in Multiplayer.","Nog een duel":"Another duel","Laden…":"Loading…","Je vrienden konden niet laden.":"Your friends couldn’t be loaded.","Het klassement kon niet laden.":"The leaderboard couldn’t be loaded.","Kopieer uitnodiging":"Copy invitation","Gekopieerd ✓":"Copied ✓","Selecteer en kopieer de tekst":"Select and copy the text","Nodig een vriend uit":"Invite a friend","Je vriend krijgt de link naar Gridquake in de app-winkel en jouw vriendcode {x}.":"Your friend gets the link to Gridquake in the app store and your friend code {x}.","Delen…":"Share…","Sluiten":"Close","Speel Gridquake met mij! 🧱 Download de app: {x}":"Play Gridquake with me! 🧱 Get the app: {x}","Voeg me toe als vriend met mijn code: {x}":"Add me as a friend with my code: {x}","Week {n}. Begint elke maandag opnieuw.":"Week {n}. Resets every Monday.","Kies een spelersnaam om mee te doen":"Choose a player name to join in","Voeg vrienden toe met hun code hieronder.":"Add friends with their code below.","Nog geen scores. Speel Klassiek en zet de eerste!":"No scores yet. Play Classic and set the first one!","jij":"you","vriend":"friend","Jouw vriendcode":"Your friend code","Code van je vriend":"Your friend’s code","Vriendcode":"Friend code","Toevoegen":"Add","Code niet gevonden":"Code not found","Probeer opnieuw":"Try again","Aanmelden met Google":"Sign in with Google","Aanmelden…":"Signing in…","Aanmelden lukt nu niet":"Can’t sign in right now","Controleer je internetverbinding en probeer opnieuw. Je kunt ook eerst als gast spelen en later je account koppelen.":"Check your internet connection and try again. You can also play as a guest first and link your account later.","Opnieuw proberen":"Try again","Verder als gast":"Continue as guest","Als gast worden je scores alleen op dit toestel bewaard. Wissel je van smartphone of verwijder je de app, dan ben je alles kwijt. Multiplayer en klassementen vragen een account.":"As a guest, your scores are only saved on this device. If you switch phones or delete the app, you lose everything. Multiplayer and leaderboards need an account.","Welkom bij Gridquake":"Welcome to Gridquake","Hoe wil je spelen?":"How do you want to play?","Je scores, vrienden en duels blijven bewaard, ook op een nieuwe smartphone.":"Your scores, friends and duels are kept, even on a new phone.","Verder als gast op dit toestel":"Continue as guest on this device","Je account":"Your account","Aangemeld met Google als {x}.":"Signed in with Google as {x}.","Aangemeld met Google.":"Signed in with Google.","Je voortgang staat veilig in je account.":"Your progress is safe in your account.","Afmelden (verder als gast)":"Sign out (continue as guest)","Je speelt als gast":"You’re playing as a guest","Je scores staan alleen op dit toestel. Koppel een account om ze te bewaren en online te spelen. Je huidige record neem je mee.":"Your scores are only on this device. Link an account to keep them and play online. Your current record comes with you.","Taal":"Language","Multiplayer":"Multiplayer","Account":"Account","Instellingen":"Settings","Gebruikersnaam":"Username","Herstelcode":"Recovery code","Bewaar deze code. Op een nieuw toestel zet je er je account mee terug.":"Keep this code safe. On a new device, use it to restore your account.","Kopieer":"Copy","Herstelcode ingeven":"Enter recovery code","Herstellen":"Restore","Herstelcode niet beschikbaar.":"Recovery code not available.","Dit is je huidige account.":"This is your current account.","Account herstellen?":"Restore account?","De gegevens op dit toestel worden vervangen door die van {x}.":"The data on this device will be replaced by that of {x}.","Account hersteld":"Account restored","Gebruikersnaam en gegevens verwijderen":"Delete username and data","Alles verwijderen?":"Delete everything?","Je gebruikersnaam, scores, sterren en vrienden worden definitief gewist. Dit kan niet ongedaan worden.":"Your username, scores, stars and friends will be permanently erased. This cannot be undone.","Verwijderen":"Delete","Kies je taal":"Choose your language","Kies een gebruikersnaam":"Choose a username","3 tot 25 tekens: letters, cijfers, spaties, - of _.":"3 to 25 characters: letters, numbers, spaces, - or _.","Deze naam is al in gebruik.":"This name is already taken.","Volgende":"Next","Controleren…":"Checking…","Geen verbinding met de server. Klassiek en Campagne speel je altijd.":"No connection to the server. Classic and Campaign always work.","Deze naam is niet toegestaan.":"This name is not allowed.","Reclame laden…":"Loading ad…","Privacy-instellingen reclame":"Ad privacy settings","Tussenreclame (na elk 5e spel)":"Interstitial ad (after every 5th game)","+5 voor elke tijdbom!":"+5 on every time bomb!","10 kaarten met elk 20 levels. Win de eindbaas om de volgende kaart te openen.":"10 maps with 20 levels each. Beat the boss to open the next map.","Aan":"On","Uit":"Off","Alle obstakels door elkaar. Toon wat je geleerd hebt!":"All obstacles mixed together. Show what you have learned!","Alleen de kleur van het blok telt, niet de vorm.":"Only the colour of the block counts, not its shape.","Archipel":"Archipelago","BOEM!":"BOOM!","Bevrijd eerst de kettingen in het midden: daar komen de meeste lijnen samen.":"Free the chains in the middle first: that is where most lines meet.","Bevrijd {n} geketende blokken":"Free {n} chained blocks","Bewaar een blok in de juiste kleur voor de lastige vakjes.":"Keep a block in the right colour for the tricky squares.","Blokthema":"Block theme","Boem! Een tijdbom ontplofte":"Boom! A time bomb went off","Breek {n} ijsvakjes":"Break {n} ice squares","De lava raakte de top":"The lava reached the top","Doel":"Goal","Edelsteen":"Gemstone","Een bom of raket naast een steen breekt hem sneller.":"A bomb or rocket next to a stone breaks it faster.","Een bom ruimt een hele mosplek in één keer op.":"A bomb clears a whole patch of moss at once.","Een explosie van een power-blok ontmantelt ook tijdbommen.":"An explosion of a power block also defuses time bombs.","Een lijn door een steen telt als een treffer. Twee lijnen tegelijk raken hem twee keer.":"A line through a stone counts as one hit. Two lines at once hit it twice.","Een raket wist een hele rij en kolom ijs in één keer.":"A rocket clears a whole row and column of ice at once.","Een rij met een geketend blok moet je twee keer vol maken.":"A row with a chained block has to be filled twice.","Een tijdbom telt bij elke zet één af. Wis hem met een lijn voor hij op 0 staat, anders ontploft het level.":"A time bomb counts down by one with every move. Clear it with a line before it reaches 0, or the level blows up.","Een vakje onder een blok in een andere kleur blijft leeg tot je die lijn wist.":"A square under a block of another colour stays unpainted until you clear that line.","Eindbaas":"Boss","Eindbaas verslagen!":"Boss defeated!","Explosies breken kettingen ook.":"Explosions break chains too.","Eén lijn door twee kisten opent ze allebei, als je genoeg sleutels hebt.":"One line through two chests opens both, if you have enough keys.","Geluid en trillen":"Sound and vibration","Geluidseffecten":"Sound effects","Geschilderd!":"Painted!","Goud":"Gold","Haal 3 sterren op de eindbaas":"Get 3 stars on the boss","Het bord heeft gaten met water. Een rij of kolom is al vol als alle vakjes met land gevuld zijn.":"The board has holes with water. A row or column is full as soon as all land squares are filled.","Het getal boven het bord toont wanneer de volgende lavarij komt.":"The number above the board shows when the next lava row comes.","Hou de bovenste rijen leeg: daar duwt de lava naartoe.":"Keep the top rows empty: that is where the lava pushes to.","Hou plaats vrij: stenen vallen alleen op lege vakjes.":"Keep space free: stones only fall on empty squares.","Hout":"Wood","IJs onder een blok breekt pas als dat blok wordt gewist.":"Ice under a block only breaks when that block is cleared.","Kijk eerst naar de bom met het laagste getal.":"Look at the bomb with the lowest number first.","Kijk eerst welk obstakel het gevaarlijkst is.":"First see which obstacle is the most dangerous.","Kist open!":"Chest open!","Korte rijen naast het water zijn snel vol.":"Short rows next to the water fill up fast.","Lange blokken passen niet overal: kijk goed naar de vorm van het eiland.":"Long blocks don't fit everywhere: look closely at the shape of the island.","Lava afgekoeld!":"Lava cooled down!","Lava afkoelen · bekijk reclame":"Cool the lava · watch an ad","Lava stijgt!":"Lava rising!","Leg een blok in dezelfde kleur op een gekleurd vakje om het te schilderen. Schilder ze allemaal.":"Place a block of the same colour on a coloured square to paint it. Paint them all.","Maak de onderste rij vol: sleep het blok van 2 naar de lege vakjes.":"Fill the bottom row: drag the 2-block to the empty squares.","Mos groeit alleen naar lege vakjes: leg blokken ernaast om het in te sluiten.":"Moss only grows into empty squares: place blocks next to it to box it in.","Naar {x}":"To {x}","Neon":"Neon","Nieuwe kaart open: {x}!":"New map open: {x}!","Nieuwe medaille!":"New medal!","Nieuwe medailles!":"New medals!","Nieuwe tijdbommen landen op lege vakjes: hou het bord netjes.":"New time bombs land on empty squares: keep the board tidy.","Om de paar beurten schuift er onderaan een rij lava in en duwt alles omhoog. Blokken bovenaan vallen van het bord. Raakt de lava de bovenkant, dan verlies je.":"Every few turns a row of lava slides in at the bottom and pushes everything up. Blocks at the top fall off the board. If the lava reaches the top, you lose.","Om de {n} beurten komt er een lavarij bij.":"Every {n} turns a lava row is added.","Om de {n} beurten landt er een nieuwe tijdbom.":"Every {n} turns a new time bomb lands.","Om de {n} beurten valt er een steen.":"Every {n} turns a stone falls.","Ontmantel {n} tijdbom":"Defuse {n} time bomb","Ontmantel {n} tijdbommen":"Defuse {n} time bombs","Ontmanteld!":"Defused!","Open alle {n} kisten":"Open all {n} chests","Open {n} kisten":"Open {n} chests","Pastel":"Pastel","Raap eerst sleutels op, open daarna de kisten.":"Pick up keys first, then open the chests.","Rij vol, rij weg! Elke volle rij of kolom verdwijnt en geeft punten.":"Row full, row gone! Every full row or column disappears and scores points.","Rijen en kolommen met veel water geven snelle punten.":"Rows and columns with lots of water give quick points.","Ruim mos snel op, het groeit sneller dan je denkt.":"Clear moss quickly, it grows faster than you think.","Ruim {n} mosvakjes op":"Clear {n} moss squares","Schatgrot":"Treasure Cave","Schilder alle {n} gekleurde vakjes":"Paint all {n} coloured squares","Schilder {n} vakjes":"Paint {n} squares","Schildersatelier":"Painter's Studio","Sleep het blok van 2 naar de 2 lege vakjes onderaan.":"Drag the 2-block to the 2 empty squares at the bottom.","Sleutel nodig!":"Key needed!","Sleutel!":"Key!","Sleutels":"Keys","Sleutels zitten soms in de blokken onderaan: leg ze slim.":"Keys are sometimes in the blocks below the board: place them wisely.","Snoepkleuren":"Sweet colours","Spaar power-blokken voor de moeilijkste plek.":"Save power blocks for the hardest spot.","Speel thema's vrij met sterren uit de campagne.":"Unlock themes with stars from the campaign.","Stenen vallen om de paar beurten op het bord. Het getal toont hoeveel keer een lijn of explosie hem nog moet raken.":"Stones fall onto the board every few turns. The number shows how many more times a line or explosion has to hit it.","Tijdbom!":"Time bomb!","Tijdbommen +5 · bekijk reclame":"Time bombs +5 · watch an ad","Tijdbommen en lava eerst, de rest daarna.":"Time bombs and lava first, the rest after that.","Tip: {x}":"Tip: {x}","Trillen":"Vibration","Verder":"Continue","Verdien {n} sterren op deze kaart":"Earn {n} stars on this map","Versla de eindbaas van {x} om deze kaart te openen.":"Beat the boss of {x} to open this map.","Vul het gat in een lavarij om hem te wissen.":"Fill the gap in a lava row to clear it.","Vulkaan":"Volcano","Werk van buiten naar binnen: hoekijs is het lastigst.":"Work from the outside in: corner ice is the hardest.","Win alle {n} levels":"Win all {n} levels","Wis 2 lijnen tegelijk voor een Raket. Het spel stopt als er geen blok meer past.":"Clear 2 lines at once for a Rocket. The game ends when no block fits anymore.","Wis een sleutel met een lijn om hem op te rapen. Een lijn door een kist opent hem als je een sleutel hebt.":"Clear a key with a line to pick it up. A line through a chest opens it if you have a key.","Wis {n} lavablokken":"Clear {n} lava blocks","Wis {n} lijnen":"Clear {n} lines","Wis {n} lijnen op de eilanden":"Clear {n} lines on the islands","Zandwoestijn":"Sand Desert","Zetten tot de volgende lavarij":"Moves until the next lava row","gekozen":"chosen","vergrendeld":"locked","{n} blokken van het bord geduwd":"{n} blocks pushed off the board"},"fr":{"Campagne":"Campagne","Klassiek":"Classique","Solo spelen tot het bord vol zit. Jaag op je record.":"Jouez en solo jusqu’à ce que la grille soit pleine. Battez votre record.","Duel van 20 zetten met dezelfde blokken, tegen een willekeurige speler of een vriend.":"Un duel de 20 coups avec les mêmes blocs, contre un joueur au hasard ou un ami.","Klassement":"Classement","Wereld, deze week en je vrienden.":"Monde, cette semaine et vos amis.","Record":"Record","Hoe werken power-blokken?":"Comment fonctionnent les blocs bonus ?","Wereld":"Monde","Week":"Semaine","Vrienden":"Amis","Geluid aan of uit":"Son activé ou désactivé","Terug naar menu":"Retour au menu","Steengroeve":"La Carrière","IJsvlakte":"Plaine glacée","Kettingfort":"Fort des chaînes","Moswoud":"Bois moussu","Meesterproef":"L’Épreuve du maître","Het getal op een steen toont hoeveel treffers van een lijn of explosie hij nog nodig heeft.":"Le chiffre sur une pierre indique combien de coups de ligne ou d’explosion il lui faut encore.","IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.":"La glace est sous une case. Posez-y un bloc et effacez la ligne pour briser la glace.","Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.":"Les blocs enchaînés comptent pour une ligne. Le premier coup brise la chaîne, le second efface le bloc.","Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.":"Tous les quelques coups, la mousse gagne une case vide voisine. Effacez-la avant qu’elle n’envahisse la grille.","Alles door elkaar, en er vallen stenen uit de lucht.":"Tout à la fois, et des pierres tombent du ciel.","Raket":"Fusée","Bom":"Bombe","Prisma":"Prisme","Raketten":"Fusées","Bommen":"Bombes","Prisma's":"Prismes","Steen!":"Pierre !","Bonus: {x}!":"Bonus : {x} !","Krak!":"Crac !","Ketting ×{n}":"Chaîne ×{n}","SCHOON BORD!":"GRILLE VIDE !","Kettingreactie!":"Réaction en chaîne !","Viervoud!":"Quadruple !","Driedubbel!":"Triple !","Kruisvuur!":"Tir croisé !","Dubbel!":"Double !","Reeks van {n}!":"Série de {n} !","Kleurlijn ×{n}":"Ligne de couleur ×{n}","Mos groeit!":"La mousse pousse !","NIEUW RECORD!":"NOUVEAU RECORD !","FINALE!":"FINALE !","Zetten":"Coups","Beste":"Meilleur","NIEUW":"NOUVEAU","Jij":"Vous","{x} speelt later":"{x} jouera plus tard","Exact hetzelfde spel: jullie krijgen dezelfde blokken, bonussen en stenen. Na 20 zetten volgt de finale.":"Exactement la même partie : vous recevez les mêmes blocs, bonus et pierres. Après 20 coups, place à la finale.","Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.":"Effacez 2 lignes d’un coup pour une Fusée, 3 pour une Bombe et une ligne de couleur pour un Prisme.","Breek {n} steen":"Brisez {n} pierre","Breek {n} stenen":"Brisez {n} pierres","Breek al het ijs ({n} vakjes)":"Brisez toute la glace ({n} cases)","Bevrijd alle {n} geketende blokken":"Libérez les {n} blocs enchaînés","Ruim al het mos op":"Éliminez toute la mousse","Maak {n} {x}":"Créez {n} {x}","Haal {n} punten":"Marquez {n} points","Haal level {n} om deze wereld te openen.":"Réussissez le niveau {n} pour débloquer ce monde.","Level {n}, vergrendeld":"Niveau {n}, verrouillé","Level {n}, {s} sterren":"Niveau {n}, {s} étoiles","Level {n}":"Niveau {n}","pittig level":"niveau corsé","{n} zetten":"{n} coups","Spelen":"Jouer","Terug":"Retour","LEVEL GEHAALD!":"NIVEAU RÉUSSI !","{n} zet over × 100":"{n} coup restant × 100","{n} zetten over × 100":"{n} coups restants × 100","Level {n} gehaald!":"Niveau {n} réussi !","★★ vanaf {a} · ★★★ vanaf {b}":"★★ dès {a} · ★★★ dès {b}","Alle sterren!":"Toutes les étoiles !","Perfect gespeeld.":"Parfaitement joué.","Volgend level":"Niveau suivant","Opnieuw":"Rejouer","Nog {n} punten":"Encore {n} points","Nog {n}":"Encore {n}","Geen zetten meer":"Plus de coups","Bord zit vol":"Grille pleine","Bijna! Dit moest nog:":"Presque ! Il restait :","+5 zetten · bekijk reclame":"+5 coups · regarder une pub","Beloonde video":"Vidéo récompensée","+5 zetten!":"+5 coups !","Bord opruimen · bekijk reclame":"Libérer la grille · regarder une pub","Opgeruimd!":"Libéré !","Kaart":"Carte","Hier komt de AdMob-advertentie":"La publicité AdMob s’affiche ici","Reclame":"Publicité","Nog {n} s":"Encore {n} s","Nieuw record!":"Nouveau record !","Geen plek meer":"Plus de place","Je record: {n}":"Votre record : {n}","Doorgaan · bekijk reclame":"Continuer · regarder une pub","Opnieuw spelen":"Rejouer","Menu":"Menu","Tweede kans!":"Seconde chance !","Raket: wis 2 lijnen tegelijk. Ontploft over zijn hele rij en kolom.":"Fusée : effacez 2 lignes d’un coup. Explose sur toute sa ligne et sa colonne.","Bom: wis 3 lijnen tegelijk. Blaast alles rondom weg.":"Bombe : effacez 3 lignes d’un coup. Pulvérise tout autour d’elle.","Prisma: wis een lijn in één kleur of 4 lijnen tegelijk. Wist alle blokken in zijn kleur.":"Prisme : effacez une ligne d’une seule couleur ou 4 lignes d’un coup. Efface tous les blocs de sa couleur.","Steen: valt elke 3 rondes. Raak hem 2 keer met een lijn of explosie om hem te breken.":"Pierre : tombe tous les 3 tours. Touchez-la 2 fois avec une ligne ou une explosion pour la briser.","Power-blokken":"Blocs bonus","Neem een power-blok mee in een lijn en hij ontploft. Raakt de ontploffing een ander power-blok, dan krijg je een kettingreactie met dubbele, driedubbele … punten.":"Incluez un bloc bonus dans une ligne et il explose. Si l’explosion touche un autre bloc bonus, vous déclenchez une réaction en chaîne qui double, triple … les points.","Begrepen":"Compris","Level stoppen?":"Quitter le niveau ?","Je voortgang in dit level gaat verloren.":"Votre progression dans ce niveau sera perdue.","Verder spelen":"Continuer","Stoppen":"Quitter","Spel stoppen?":"Quitter la partie ?","Je huidige score wordt ingediend als eindscore van dit duel.":"Votre score actuel sera envoyé comme score final de ce duel.","Je score van dit spel gaat verloren.":"Le score de cette partie sera perdu.","Opslag is vol.":"Le stockage est plein.","Opslaan lukte niet. Probeer opnieuw.":"L’enregistrement a échoué. Réessayez.","Speler":"Joueur","Bijvoorbeeld Blokbaas":"Par exemple BlocChef","Spelersnaam":"Pseudo","Opslaan":"Enregistrer","Kies je spelersnaam":"Choisissez votre pseudo","Andere spelers zien deze naam in het klassement en bij duels.":"Les autres joueurs voient ce nom dans le classement et lors des duels.","Annuleren":"Annuler","200 levels op 10 kaarten, elk met een nieuw obstakel.":"200 niveaux sur 10 cartes, chacune avec un nouvel obstacle.","Nog geen spelersnaam":"Pas encore de pseudo","Gast":"Invité","alleen dit toestel":"cet appareil uniquement","Multiplayer en klassementen vragen een account. Je scores als gast neem je mee.":"Le multijoueur et les classements nécessitent un compte. Vos scores d’invité sont conservés.","Willekeurige tegenstander":"Adversaire au hasard","Jullie spelen 20 zetten met exact dezelfde blokken. Wie na de finale de hoogste score heeft, wint.":"Vous jouez 20 coups avec exactement les mêmes blocs. Le meilleur score après la finale l’emporte.","Jouw beurt":"À vous","{x} daagt je uit":"{x} vous défie","Willekeurig duel":"Duel aléatoire","Vriendenduel":"Duel entre amis","Speel":"Jouer","Daag een vriend uit":"Défiez un ami","Nog geen vrienden. Voeg ze toe met hun vriendcode in Klassement › Vrienden.":"Pas encore d’amis. Ajoutez-les avec leur code ami dans Classement › Amis.","Uitdagen":"Défier","Recente duels":"Duels récents","Nog niet gespeeld":"Pas encore joué","Zoekt tegenstander · jij {n}":"Recherche d’adversaire · vous {n}","Wacht op {x} · jij {n}":"En attente de {x} · vous {n}","Gewonnen":"Gagné","Verloren":"Perdu","Gelijk":"Égalité","Revanche":"Revanche","tegen {x}":"contre {x}","Tegenstander zoeken…":"Recherche d’un adversaire…","Even geduld.":"Un instant.","Zoeken lukte niet":"La recherche a échoué","Controleer je verbinding en probeer opnieuw.":"Vérifiez votre connexion et réessayez.","Uitdagen lukte niet.":"Le défi a échoué.","Score ingediend":"Score envoyé","Gewonnen!":"Gagné !","Gelijkspel":"Égalité","Tegenstander":"Adversaire","{x} speelt dezelfde blokken later. Je ziet de uitslag in Multiplayer.":"{x} jouera les mêmes blocs plus tard. Vous verrez le résultat dans Multijoueur.","Zodra iemand je duel oppikt, zie je de uitslag in Multiplayer.":"Dès que quelqu’un relève votre duel, vous verrez le résultat dans Multijoueur.","Nog een duel":"Un autre duel","Laden…":"Chargement…","Je vrienden konden niet laden.":"Impossible de charger vos amis.","Het klassement kon niet laden.":"Impossible de charger le classement.","Kopieer uitnodiging":"Copier l’invitation","Gekopieerd ✓":"Copié ✓","Selecteer en kopieer de tekst":"Sélectionnez et copiez le texte","Nodig een vriend uit":"Invitez un ami","Je vriend krijgt de link naar Gridquake in de app-winkel en jouw vriendcode {x}.":"Votre ami reçoit le lien vers Gridquake dans la boutique d’applications et votre code ami {x}.","Delen…":"Partager…","Sluiten":"Fermer","Speel Gridquake met mij! 🧱 Download de app: {x}":"Joue à Gridquake avec moi ! 🧱 Télécharge l’appli : {x}","Voeg me toe als vriend met mijn code: {x}":"Ajoute-moi en ami avec mon code : {x}","Week {n}. Begint elke maandag opnieuw.":"Semaine {n}. Remise à zéro chaque lundi.","Kies een spelersnaam om mee te doen":"Choisissez un pseudo pour participer","Voeg vrienden toe met hun code hieronder.":"Ajoutez des amis avec leur code ci-dessous.","Nog geen scores. Speel Klassiek en zet de eerste!":"Pas encore de scores. Jouez en Classique et soyez le premier !","jij":"vous","vriend":"ami","Jouw vriendcode":"Votre code ami","Code van je vriend":"Code de votre ami","Vriendcode":"Code ami","Toevoegen":"Ajouter","Code niet gevonden":"Code introuvable","Probeer opnieuw":"Réessayez","Aanmelden met Google":"Se connecter avec Google","Aanmelden…":"Connexion…","Aanmelden lukt nu niet":"Connexion impossible pour le moment","Controleer je internetverbinding en probeer opnieuw. Je kunt ook eerst als gast spelen en later je account koppelen.":"Vérifiez votre connexion Internet et réessayez. Vous pouvez aussi jouer en invité et lier votre compte plus tard.","Opnieuw proberen":"Réessayer","Verder als gast":"Continuer en invité","Als gast worden je scores alleen op dit toestel bewaard. Wissel je van smartphone of verwijder je de app, dan ben je alles kwijt. Multiplayer en klassementen vragen een account.":"En invité, vos scores ne sont enregistrés que sur cet appareil. Si vous changez de téléphone ou supprimez l’appli, vous perdez tout. Le multijoueur et les classements nécessitent un compte.","Welkom bij Gridquake":"Bienvenue dans Gridquake","Hoe wil je spelen?":"Comment voulez-vous jouer ?","Je scores, vrienden en duels blijven bewaard, ook op een nieuwe smartphone.":"Vos scores, amis et duels sont conservés, même sur un nouveau téléphone.","Verder als gast op dit toestel":"Continuer en invité sur cet appareil","Je account":"Votre compte","Aangemeld met Google als {x}.":"Connecté avec Google en tant que {x}.","Aangemeld met Google.":"Connecté avec Google.","Je voortgang staat veilig in je account.":"Votre progression est sauvegardée dans votre compte.","Afmelden (verder als gast)":"Se déconnecter (continuer en invité)","Je speelt als gast":"Vous jouez en invité","Je scores staan alleen op dit toestel. Koppel een account om ze te bewaren en online te spelen. Je huidige record neem je mee.":"Vos scores ne sont que sur cet appareil. Liez un compte pour les conserver et jouer en ligne. Votre record actuel est conservé.","Taal":"Langue","Multiplayer":"Multijoueur","Account":"Compte","Instellingen":"Paramètres","Gebruikersnaam":"Nom d’utilisateur","Herstelcode":"Code de récupération","Bewaar deze code. Op een nieuw toestel zet je er je account mee terug.":"Conservez ce code. Sur un nouvel appareil, il permet de récupérer votre compte.","Kopieer":"Copier","Herstelcode ingeven":"Saisir un code de récupération","Herstellen":"Récupérer","Herstelcode niet beschikbaar.":"Code de récupération indisponible.","Dit is je huidige account.":"C’est votre compte actuel.","Account herstellen?":"Récupérer le compte ?","De gegevens op dit toestel worden vervangen door die van {x}.":"Les données de cet appareil seront remplacées par celles de {x}.","Account hersteld":"Compte récupéré","Gebruikersnaam en gegevens verwijderen":"Supprimer le nom d’utilisateur et les données","Alles verwijderen?":"Tout supprimer ?","Je gebruikersnaam, scores, sterren en vrienden worden definitief gewist. Dit kan niet ongedaan worden.":"Votre nom d’utilisateur, vos scores, étoiles et amis seront définitivement effacés. Cette action est irréversible.","Verwijderen":"Supprimer","Kies je taal":"Choisissez votre langue","Kies een gebruikersnaam":"Choisissez un nom d’utilisateur","3 tot 25 tekens: letters, cijfers, spaties, - of _.":"3 à 25 caractères : lettres, chiffres, espaces, - ou _.","Deze naam is al in gebruik.":"Ce nom est déjà pris.","Volgende":"Suivant","Controleren…":"Vérification…","Geen verbinding met de server. Klassiek en Campagne speel je altijd.":"Pas de connexion au serveur. Les modes Classique et Campagne fonctionnent toujours.","Deze naam is niet toegestaan.":"Ce nom n'est pas autorisé.","Reclame laden…":"Chargement de la pub…","Privacy-instellingen reclame":"Confidentialité des pubs","Tussenreclame (na elk 5e spel)":"Publicité interstitielle (après chaque 5e partie)","+5 voor elke tijdbom!":"+5 sur chaque bombe à retardement !","10 kaarten met elk 20 levels. Win de eindbaas om de volgende kaart te openen.":"10 cartes de 20 niveaux chacune. Bats le boss final pour ouvrir la carte suivante.","Aan":"Activé","Uit":"Désactivé","Alle obstakels door elkaar. Toon wat je geleerd hebt!":"Tous les obstacles mélangés. Montre ce que tu as appris !","Alleen de kleur van het blok telt, niet de vorm.":"Seule la couleur du bloc compte, pas sa forme.","Archipel":"Archipel","BOEM!":"BOUM !","Bevrijd eerst de kettingen in het midden: daar komen de meeste lijnen samen.":"Libère d'abord les chaînes du milieu : c'est là que se croisent le plus de lignes.","Bevrijd {n} geketende blokken":"Libère {n} blocs enchaînés","Bewaar een blok in de juiste kleur voor de lastige vakjes.":"Garde un bloc de la bonne couleur pour les cases difficiles.","Blokthema":"Thème des blocs","Boem! Een tijdbom ontplofte":"Boum ! Une bombe à retardement a explosé","Breek {n} ijsvakjes":"Brise {n} cases de glace","De lava raakte de top":"La lave a atteint le sommet","Doel":"Objectif","Edelsteen":"Pierre précieuse","Een bom of raket naast een steen breekt hem sneller.":"Une bombe ou une fusée à côté d'une pierre la brise plus vite.","Een bom ruimt een hele mosplek in één keer op.":"Une bombe nettoie toute une zone de mousse d'un coup.","Een explosie van een power-blok ontmantelt ook tijdbommen.":"L'explosion d'un bloc bonus désamorce aussi les bombes à retardement.","Een lijn door een steen telt als een treffer. Twee lijnen tegelijk raken hem twee keer.":"Une ligne qui traverse une pierre compte comme un coup. Deux lignes à la fois la frappent deux fois.","Een raket wist een hele rij en kolom ijs in één keer.":"Une fusée efface d'un coup toute une ligne et une colonne de glace.","Een rij met een geketend blok moet je twee keer vol maken.":"Une ligne avec un bloc enchaîné doit être remplie deux fois.","Een tijdbom telt bij elke zet één af. Wis hem met een lijn voor hij op 0 staat, anders ontploft het level.":"Une bombe à retardement perd un à chaque coup. Efface-la avec une ligne avant qu'elle n'arrive à 0, sinon le niveau explose.","Een vakje onder een blok in een andere kleur blijft leeg tot je die lijn wist.":"Une case sous un bloc d'une autre couleur reste vide jusqu'à ce que tu effaces cette ligne.","Eindbaas":"Boss final","Eindbaas verslagen!":"Boss final vaincu !","Explosies breken kettingen ook.":"Les explosions brisent aussi les chaînes.","Eén lijn door twee kisten opent ze allebei, als je genoeg sleutels hebt.":"Une ligne qui traverse deux coffres les ouvre tous les deux, si tu as assez de clés.","Geluid en trillen":"Son et vibrations","Geluidseffecten":"Effets sonores","Geschilderd!":"Peint !","Goud":"Or","Haal 3 sterren op de eindbaas":"Obtiens 3 étoiles sur le boss final","Het bord heeft gaten met water. Een rij of kolom is al vol als alle vakjes met land gevuld zijn.":"Le plateau a des trous remplis d'eau. Une ligne ou une colonne est pleine dès que toutes les cases de terre sont remplies.","Het getal boven het bord toont wanneer de volgende lavarij komt.":"Le nombre au-dessus du plateau indique quand arrive la prochaine ligne de lave.","Hou de bovenste rijen leeg: daar duwt de lava naartoe.":"Garde les lignes du haut vides : c'est là que la lave pousse.","Hou plaats vrij: stenen vallen alleen op lege vakjes.":"Garde de la place : les pierres ne tombent que sur des cases vides.","Hout":"Bois","IJs onder een blok breekt pas als dat blok wordt gewist.":"La glace sous un bloc ne se brise que quand ce bloc est effacé.","Kijk eerst naar de bom met het laagste getal.":"Occupe-toi d'abord de la bombe avec le plus petit nombre.","Kijk eerst welk obstakel het gevaarlijkst is.":"Regarde d'abord quel obstacle est le plus dangereux.","Kist open!":"Coffre ouvert !","Korte rijen naast het water zijn snel vol.":"Les lignes courtes au bord de l'eau se remplissent vite.","Lange blokken passen niet overal: kijk goed naar de vorm van het eiland.":"Les longs blocs ne rentrent pas partout : regarde bien la forme de l'île.","Lava afgekoeld!":"Lave refroidie !","Lava afkoelen · bekijk reclame":"Refroidir la lave · regarder une pub","Lava stijgt!":"La lave monte !","Leg een blok in dezelfde kleur op een gekleurd vakje om het te schilderen. Schilder ze allemaal.":"Pose un bloc de la même couleur sur une case colorée pour la peindre. Peins-les toutes.","Maak de onderste rij vol: sleep het blok van 2 naar de lege vakjes.":"Remplis la ligne du bas : fais glisser le bloc de 2 vers les cases vides.","Mos groeit alleen naar lege vakjes: leg blokken ernaast om het in te sluiten.":"La mousse ne pousse que vers des cases vides : pose des blocs à côté pour l'enfermer.","Naar {x}":"Vers {x}","Neon":"Néon","Nieuwe kaart open: {x}!":"Nouvelle carte ouverte : {x} !","Nieuwe medaille!":"Nouvelle médaille !","Nieuwe medailles!":"Nouvelles médailles !","Nieuwe tijdbommen landen op lege vakjes: hou het bord netjes.":"Les nouvelles bombes atterrissent sur des cases vides : garde le plateau propre.","Om de paar beurten schuift er onderaan een rij lava in en duwt alles omhoog. Blokken bovenaan vallen van het bord. Raakt de lava de bovenkant, dan verlies je.":"Tous les quelques tours, une ligne de lave arrive par le bas et pousse tout vers le haut. Les blocs du haut tombent du plateau. Si la lave atteint le sommet, tu perds.","Om de {n} beurten komt er een lavarij bij.":"Tous les {n} tours, une ligne de lave s'ajoute.","Om de {n} beurten landt er een nieuwe tijdbom.":"Tous les {n} tours, une nouvelle bombe atterrit.","Om de {n} beurten valt er een steen.":"Tous les {n} tours, une pierre tombe.","Ontmantel {n} tijdbom":"Désamorce {n} bombe à retardement","Ontmantel {n} tijdbommen":"Désamorce {n} bombes à retardement","Ontmanteld!":"Désamorcée !","Open alle {n} kisten":"Ouvre les {n} coffres","Open {n} kisten":"Ouvre {n} coffres","Pastel":"Pastel","Raap eerst sleutels op, open daarna de kisten.":"Ramasse d'abord les clés, puis ouvre les coffres.","Rij vol, rij weg! Elke volle rij of kolom verdwijnt en geeft punten.":"Ligne pleine, ligne effacée ! Chaque ligne ou colonne pleine disparaît et rapporte des points.","Rijen en kolommen met veel water geven snelle punten.":"Les lignes et colonnes avec beaucoup d'eau rapportent vite des points.","Ruim mos snel op, het groeit sneller dan je denkt.":"Nettoie vite la mousse, elle pousse plus vite que tu ne crois.","Ruim {n} mosvakjes op":"Nettoie {n} cases de mousse","Schatgrot":"Grotte au trésor","Schilder alle {n} gekleurde vakjes":"Peins les {n} cases colorées","Schilder {n} vakjes":"Peins {n} cases","Schildersatelier":"Atelier de peinture","Sleep het blok van 2 naar de 2 lege vakjes onderaan.":"Fais glisser le bloc de 2 vers les 2 cases vides en bas.","Sleutel nodig!":"Il faut une clé !","Sleutel!":"Clé !","Sleutels":"Clés","Sleutels zitten soms in de blokken onderaan: leg ze slim.":"Les clés sont parfois dans les blocs sous le plateau : pose-les bien.","Snoepkleuren":"Couleurs bonbons","Spaar power-blokken voor de moeilijkste plek.":"Garde les blocs bonus pour l'endroit le plus difficile.","Speel thema's vrij met sterren uit de campagne.":"Débloque des thèmes avec les étoiles de la campagne.","Stenen vallen om de paar beurten op het bord. Het getal toont hoeveel keer een lijn of explosie hem nog moet raken.":"Des pierres tombent sur le plateau tous les quelques tours. Le nombre indique combien de fois une ligne ou une explosion doit encore la frapper.","Tijdbom!":"Bombe à retardement !","Tijdbommen +5 · bekijk reclame":"Bombes +5 · regarder une pub","Tijdbommen en lava eerst, de rest daarna.":"D'abord les bombes et la lave, le reste ensuite.","Tip: {x}":"Astuce : {x}","Trillen":"Vibrations","Verder":"Continuer","Verdien {n} sterren op deze kaart":"Gagne {n} étoiles sur cette carte","Versla de eindbaas van {x} om deze kaart te openen.":"Bats le boss final de {x} pour ouvrir cette carte.","Vul het gat in een lavarij om hem te wissen.":"Comble le trou d'une ligne de lave pour l'effacer.","Vulkaan":"Volcan","Werk van buiten naar binnen: hoekijs is het lastigst.":"Travaille de l'extérieur vers l'intérieur : la glace dans les coins est la plus difficile.","Win alle {n} levels":"Gagne les {n} niveaux","Wis 2 lijnen tegelijk voor een Raket. Het spel stopt als er geen blok meer past.":"Efface 2 lignes à la fois pour une Fusée. La partie s'arrête quand plus aucun bloc ne rentre.","Wis een sleutel met een lijn om hem op te rapen. Een lijn door een kist opent hem als je een sleutel hebt.":"Efface une clé avec une ligne pour la ramasser. Une ligne qui traverse un coffre l'ouvre si tu as une clé.","Wis {n} lavablokken":"Efface {n} blocs de lave","Wis {n} lijnen":"Efface {n} lignes","Wis {n} lijnen op de eilanden":"Efface {n} lignes sur les îles","Zandwoestijn":"Désert de sable","Zetten tot de volgende lavarij":"Coups avant la prochaine ligne de lave","gekozen":"choisi","vergrendeld":"verrouillé","{n} blokken van het bord geduwd":"{n} blocs poussés hors du plateau"},"de":{"Campagne":"Kampagne","Klassiek":"Klassisch","Solo spelen tot het bord vol zit. Jaag op je record.":"Spiel allein, bis das Brett voll ist. Jag deinen Rekord.","Duel van 20 zetten met dezelfde blokken, tegen een willekeurige speler of een vriend.":"Ein Duell über 20 Züge mit denselben Blöcken, gegen einen zufälligen Spieler oder einen Freund.","Klassement":"Rangliste","Wereld, deze week en je vrienden.":"Welt, diese Woche und deine Freunde.","Record":"Rekord","Hoe werken power-blokken?":"Wie funktionieren Power-Blöcke?","Wereld":"Welt","Week":"Woche","Vrienden":"Freunde","Geluid aan of uit":"Ton an oder aus","Terug naar menu":"Zurück zum Menü","Steengroeve":"Steinbruch","IJsvlakte":"Eisebene","Kettingfort":"Kettenburg","Moswoud":"Mooswald","Meesterproef":"Meisterprüfung","Het getal op een steen toont hoeveel treffers van een lijn of explosie hij nog nodig heeft.":"Die Zahl auf einem Stein zeigt, wie viele Treffer durch eine Linie oder Explosion er noch braucht.","IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.":"Eis liegt unter einem Feld. Leg einen Block darauf und räum die Linie ab, um das Eis zu brechen.","Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.":"Angekettete Blöcke zählen für eine Linie. Der erste Treffer sprengt die Kette, der zweite entfernt den Block.","Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.":"Alle paar Züge wächst Moos auf ein leeres Nachbarfeld. Räum es weg, bevor das Brett zuwächst.","Alles door elkaar, en er vallen stenen uit de lucht.":"Alles durcheinander, und Steine fallen vom Himmel.","Raket":"Rakete","Bom":"Bombe","Prisma":"Prisma","Raketten":"Raketen","Bommen":"Bomben","Prisma's":"Prismen","Steen!":"Stein!","Bonus: {x}!":"Bonus: {x}!","Krak!":"Krach!","Ketting ×{n}":"Kette ×{n}","SCHOON BORD!":"BRETT LEER!","Kettingreactie!":"Kettenreaktion!","Viervoud!":"Vierfach!","Driedubbel!":"Dreifach!","Kruisvuur!":"Kreuzfeuer!","Dubbel!":"Doppelt!","Reeks van {n}!":"{n}er-Serie!","Kleurlijn ×{n}":"Farblinie ×{n}","Mos groeit!":"Moos wächst!","NIEUW RECORD!":"NEUER REKORD!","FINALE!":"FINALE!","Zetten":"Züge","Beste":"Bestwert","NIEUW":"NEU","Jij":"Du","{x} speelt later":"{x} spielt später","Exact hetzelfde spel: jullie krijgen dezelfde blokken, bonussen en stenen. Na 20 zetten volgt de finale.":"Exakt dasselbe Spiel: Ihr bekommt dieselben Blöcke, Boni und Steine. Nach 20 Zügen folgt das Finale.","Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.":"Räum 2 Linien gleichzeitig ab für eine Rakete, 3 für eine Bombe und eine Farblinie für ein Prisma.","Breek {n} steen":"Zerstöre {n} Stein","Breek {n} stenen":"Zerstöre {n} Steine","Breek al het ijs ({n} vakjes)":"Brich das ganze Eis ({n} Felder)","Bevrijd alle {n} geketende blokken":"Befreie alle {n} angeketteten Blöcke","Ruim al het mos op":"Entferne das ganze Moos","Maak {n} {x}":"Erzeuge {n} {x}","Haal {n} punten":"Erreiche {n} Punkte","Haal level {n} om deze wereld te openen.":"Schaff Level {n}, um diese Welt freizuschalten.","Level {n}, vergrendeld":"Level {n}, gesperrt","Level {n}, {s} sterren":"Level {n}, {s} Sterne","Level {n}":"Level {n}","pittig level":"knackiges Level","{n} zetten":"{n} Züge","Spelen":"Spielen","Terug":"Zurück","LEVEL GEHAALD!":"LEVEL GESCHAFFT!","{n} zet over × 100":"{n} Zug übrig × 100","{n} zetten over × 100":"{n} Züge übrig × 100","Level {n} gehaald!":"Level {n} geschafft!","★★ vanaf {a} · ★★★ vanaf {b}":"★★ ab {a} · ★★★ ab {b}","Alle sterren!":"Alle Sterne!","Perfect gespeeld.":"Perfekt gespielt.","Volgend level":"Nächstes Level","Opnieuw":"Nochmal","Nog {n} punten":"Noch {n} Punkte","Nog {n}":"Noch {n}","Geen zetten meer":"Keine Züge mehr","Bord zit vol":"Brett ist voll","Bijna! Dit moest nog:":"Fast! Das fehlte noch:","+5 zetten · bekijk reclame":"+5 Züge · Werbung ansehen","Beloonde video":"Belohnungsvideo","+5 zetten!":"+5 Züge!","Bord opruimen · bekijk reclame":"Brett aufräumen · Werbung ansehen","Opgeruimd!":"Aufgeräumt!","Kaart":"Karte","Hier komt de AdMob-advertentie":"Hier erscheint die AdMob-Anzeige","Reclame":"Werbung","Nog {n} s":"Noch {n} s","Nieuw record!":"Neuer Rekord!","Geen plek meer":"Kein Platz mehr","Je record: {n}":"Dein Rekord: {n}","Doorgaan · bekijk reclame":"Weiterspielen · Werbung ansehen","Opnieuw spelen":"Nochmal spielen","Menu":"Menü","Tweede kans!":"Zweite Chance!","Raket: wis 2 lijnen tegelijk. Ontploft over zijn hele rij en kolom.":"Rakete: Räum 2 Linien gleichzeitig ab. Explodiert über ihre ganze Zeile und Spalte.","Bom: wis 3 lijnen tegelijk. Blaast alles rondom weg.":"Bombe: Räum 3 Linien gleichzeitig ab. Sprengt alles rundherum weg.","Prisma: wis een lijn in één kleur of 4 lijnen tegelijk. Wist alle blokken in zijn kleur.":"Prisma: Räum eine einfarbige Linie oder 4 Linien gleichzeitig ab. Entfernt alle Blöcke seiner Farbe.","Steen: valt elke 3 rondes. Raak hem 2 keer met een lijn of explosie om hem te breken.":"Stein: Fällt alle 3 Runden. Triff ihn zweimal mit einer Linie oder Explosion, um ihn zu zerstören.","Power-blokken":"Power-Blöcke","Neem een power-blok mee in een lijn en hij ontploft. Raakt de ontploffing een ander power-blok, dan krijg je een kettingreactie met dubbele, driedubbele … punten.":"Nimm einen Power-Block in eine Linie mit, und er explodiert. Trifft die Explosion einen anderen Power-Block, gibt es eine Kettenreaktion mit doppelten, dreifachen … Punkten.","Begrepen":"Verstanden","Level stoppen?":"Level beenden?","Je voortgang in dit level gaat verloren.":"Dein Fortschritt in diesem Level geht verloren.","Verder spelen":"Weiterspielen","Stoppen":"Beenden","Spel stoppen?":"Spiel beenden?","Je huidige score wordt ingediend als eindscore van dit duel.":"Dein aktueller Punktestand wird als Endergebnis dieses Duells eingereicht.","Je score van dit spel gaat verloren.":"Dein Punktestand dieses Spiels geht verloren.","Opslag is vol.":"Speicher ist voll.","Opslaan lukte niet. Probeer opnieuw.":"Speichern fehlgeschlagen. Versuch es nochmal.","Speler":"Spieler","Bijvoorbeeld Blokbaas":"Zum Beispiel BlockBoss","Spelersnaam":"Spielername","Opslaan":"Speichern","Kies je spelersnaam":"Wähl deinen Spielernamen","Andere spelers zien deze naam in het klassement en bij duels.":"Andere Spieler sehen diesen Namen in der Rangliste und bei Duellen.","Annuleren":"Abbrechen","200 levels op 10 kaarten, elk met een nieuw obstakel.":"200 Levels auf 10 Karten, jede mit einem neuen Hindernis.","Nog geen spelersnaam":"Noch kein Spielername","Gast":"Gast","alleen dit toestel":"nur dieses Gerät","Multiplayer en klassementen vragen een account. Je scores als gast neem je mee.":"Mehrspieler und Ranglisten brauchen ein Konto. Deine Gast-Punkte nimmst du mit.","Willekeurige tegenstander":"Zufälliger Gegner","Jullie spelen 20 zetten met exact dezelfde blokken. Wie na de finale de hoogste score heeft, wint.":"Ihr spielt 20 Züge mit exakt denselben Blöcken. Wer nach dem Finale vorn liegt, gewinnt.","Jouw beurt":"Du bist dran","{x} daagt je uit":"{x} fordert dich heraus","Willekeurig duel":"Zufallsduell","Vriendenduel":"Freundesduell","Speel":"Spielen","Daag een vriend uit":"Fordere einen Freund heraus","Nog geen vrienden. Voeg ze toe met hun vriendcode in Klassement › Vrienden.":"Noch keine Freunde. Füge sie mit ihrem Freundescode unter Rangliste › Freunde hinzu.","Uitdagen":"Herausfordern","Recente duels":"Letzte Duelle","Nog niet gespeeld":"Noch nicht gespielt","Zoekt tegenstander · jij {n}":"Sucht Gegner · du {n}","Wacht op {x} · jij {n}":"Wartet auf {x} · du {n}","Gewonnen":"Gewonnen","Verloren":"Verloren","Gelijk":"Unentschieden","Revanche":"Revanche","tegen {x}":"gegen {x}","Tegenstander zoeken…":"Gegner wird gesucht…","Even geduld.":"Einen Moment.","Zoeken lukte niet":"Suche fehlgeschlagen","Controleer je verbinding en probeer opnieuw.":"Prüf deine Verbindung und versuch es nochmal.","Uitdagen lukte niet.":"Herausforderung fehlgeschlagen.","Score ingediend":"Ergebnis eingereicht","Gewonnen!":"Gewonnen!","Gelijkspel":"Unentschieden","Tegenstander":"Gegner","{x} speelt dezelfde blokken later. Je ziet de uitslag in Multiplayer.":"{x} spielt dieselben Blöcke später. Das Ergebnis siehst du unter Mehrspieler.","Zodra iemand je duel oppikt, zie je de uitslag in Multiplayer.":"Sobald jemand dein Duell annimmt, siehst du das Ergebnis unter Mehrspieler.","Nog een duel":"Noch ein Duell","Laden…":"Wird geladen…","Je vrienden konden niet laden.":"Deine Freunde konnten nicht geladen werden.","Het klassement kon niet laden.":"Die Rangliste konnte nicht geladen werden.","Kopieer uitnodiging":"Einladung kopieren","Gekopieerd ✓":"Kopiert ✓","Selecteer en kopieer de tekst":"Text markieren und kopieren","Nodig een vriend uit":"Lade einen Freund ein","Je vriend krijgt de link naar Gridquake in de app-winkel en jouw vriendcode {x}.":"Dein Freund bekommt den Link zu Gridquake im App-Store und deinen Freundescode {x}.","Delen…":"Teilen…","Sluiten":"Schließen","Speel Gridquake met mij! 🧱 Download de app: {x}":"Spiel Gridquake mit mir! 🧱 Hol dir die App: {x}","Voeg me toe als vriend met mijn code: {x}":"Füg mich als Freund hinzu mit meinem Code: {x}","Week {n}. Begint elke maandag opnieuw.":"Woche {n}. Startet jeden Montag neu.","Kies een spelersnaam om mee te doen":"Wähl einen Spielernamen, um mitzumachen","Voeg vrienden toe met hun code hieronder.":"Füge Freunde unten mit ihrem Code hinzu.","Nog geen scores. Speel Klassiek en zet de eerste!":"Noch keine Punkte. Spiel Klassisch und setz den ersten!","jij":"du","vriend":"Freund","Jouw vriendcode":"Dein Freundescode","Code van je vriend":"Code deines Freundes","Vriendcode":"Freundescode","Toevoegen":"Hinzufügen","Code niet gevonden":"Code nicht gefunden","Probeer opnieuw":"Versuch es nochmal","Aanmelden met Google":"Mit Google anmelden","Aanmelden…":"Anmeldung…","Aanmelden lukt nu niet":"Anmeldung gerade nicht möglich","Controleer je internetverbinding en probeer opnieuw. Je kunt ook eerst als gast spelen en later je account koppelen.":"Prüf deine Internetverbindung und versuch es nochmal. Du kannst auch erst als Gast spielen und dein Konto später verknüpfen.","Opnieuw proberen":"Erneut versuchen","Verder als gast":"Als Gast weiter","Als gast worden je scores alleen op dit toestel bewaard. Wissel je van smartphone of verwijder je de app, dan ben je alles kwijt. Multiplayer en klassementen vragen een account.":"Als Gast werden deine Punkte nur auf diesem Gerät gespeichert. Wechselst du das Handy oder löschst die App, ist alles weg. Mehrspieler und Ranglisten brauchen ein Konto.","Welkom bij Gridquake":"Willkommen bei Gridquake","Hoe wil je spelen?":"Wie möchtest du spielen?","Je scores, vrienden en duels blijven bewaard, ook op een nieuwe smartphone.":"Deine Punkte, Freunde und Duelle bleiben erhalten, auch auf einem neuen Handy.","Verder als gast op dit toestel":"Als Gast auf diesem Gerät weiter","Je account":"Dein Konto","Aangemeld met Google als {x}.":"Mit Google angemeldet als {x}.","Aangemeld met Google.":"Mit Google angemeldet.","Je voortgang staat veilig in je account.":"Dein Fortschritt ist in deinem Konto gesichert.","Afmelden (verder als gast)":"Abmelden (als Gast weiter)","Je speelt als gast":"Du spielst als Gast","Je scores staan alleen op dit toestel. Koppel een account om ze te bewaren en online te spelen. Je huidige record neem je mee.":"Deine Punkte sind nur auf diesem Gerät. Verknüpfe ein Konto, um sie zu sichern und online zu spielen. Deinen Rekord nimmst du mit.","Taal":"Sprache","Multiplayer":"Mehrspieler","Account":"Konto","Instellingen":"Einstellungen","Gebruikersnaam":"Benutzername","Herstelcode":"Wiederherstellungscode","Bewaar deze code. Op een nieuw toestel zet je er je account mee terug.":"Bewahre diesen Code auf. Auf einem neuen Gerät stellst du damit dein Konto wieder her.","Kopieer":"Kopieren","Herstelcode ingeven":"Wiederherstellungscode eingeben","Herstellen":"Wiederherstellen","Herstelcode niet beschikbaar.":"Wiederherstellungscode nicht verfügbar.","Dit is je huidige account.":"Das ist dein aktuelles Konto.","Account herstellen?":"Konto wiederherstellen?","De gegevens op dit toestel worden vervangen door die van {x}.":"Die Daten auf diesem Gerät werden durch die von {x} ersetzt.","Account hersteld":"Konto wiederhergestellt","Gebruikersnaam en gegevens verwijderen":"Benutzername und Daten löschen","Alles verwijderen?":"Alles löschen?","Je gebruikersnaam, scores, sterren en vrienden worden definitief gewist. Dit kan niet ongedaan worden.":"Dein Benutzername, deine Punkte, Sterne und Freunde werden endgültig gelöscht. Das kann nicht rückgängig gemacht werden.","Verwijderen":"Löschen","Kies je taal":"Wähle deine Sprache","Kies een gebruikersnaam":"Wähle einen Benutzernamen","3 tot 25 tekens: letters, cijfers, spaties, - of _.":"3 bis 25 Zeichen: Buchstaben, Ziffern, Leerzeichen, - oder _.","Deze naam is al in gebruik.":"Dieser Name ist schon vergeben.","Volgende":"Weiter","Controleren…":"Wird geprüft…","Geen verbinding met de server. Klassiek en Campagne speel je altijd.":"Keine Verbindung zum Server. Klassisch und Kampagne gehen immer.","Deze naam is niet toegestaan.":"Dieser Name ist nicht erlaubt.","Reclame laden…":"Werbung wird geladen…","Privacy-instellingen reclame":"Datenschutz für Werbung","Tussenreclame (na elk 5e spel)":"Zwischenwerbung (nach jedem 5. Spiel)","+5 voor elke tijdbom!":"+5 für jede Zeitbombe!","10 kaarten met elk 20 levels. Win de eindbaas om de volgende kaart te openen.":"10 Karten mit je 20 Levels. Besiege den Endgegner, um die nächste Karte zu öffnen.","Aan":"An","Uit":"Aus","Alle obstakels door elkaar. Toon wat je geleerd hebt!":"Alle Hindernisse gemischt. Zeig, was du gelernt hast!","Alleen de kleur van het blok telt, niet de vorm.":"Nur die Farbe des Blocks zählt, nicht seine Form.","Archipel":"Archipel","BOEM!":"BUMM!","Bevrijd eerst de kettingen in het midden: daar komen de meeste lijnen samen.":"Befreie zuerst die Ketten in der Mitte: Dort kreuzen sich die meisten Linien.","Bevrijd {n} geketende blokken":"Befreie {n} angekettete Blöcke","Bewaar een blok in de juiste kleur voor de lastige vakjes.":"Heb einen Block in der richtigen Farbe für die kniffligen Felder auf.","Blokthema":"Blockthema","Boem! Een tijdbom ontplofte":"Bumm! Eine Zeitbombe ist explodiert","Breek {n} ijsvakjes":"Brich {n} Eisfelder","De lava raakte de top":"Die Lava hat den oberen Rand erreicht","Doel":"Ziel","Edelsteen":"Edelstein","Een bom of raket naast een steen breekt hem sneller.":"Eine Bombe oder Rakete neben einem Stein bricht ihn schneller.","Een bom ruimt een hele mosplek in één keer op.":"Eine Bombe räumt eine ganze Moosstelle auf einmal weg.","Een explosie van een power-blok ontmantelt ook tijdbommen.":"Die Explosion eines Power-Blocks entschärft auch Zeitbomben.","Een lijn door een steen telt als een treffer. Twee lijnen tegelijk raken hem twee keer.":"Eine Linie durch einen Stein zählt als ein Treffer. Zwei Linien gleichzeitig treffen ihn zweimal.","Een raket wist een hele rij en kolom ijs in één keer.":"Eine Rakete räumt eine ganze Reihe und Spalte Eis auf einmal.","Een rij met een geketend blok moet je twee keer vol maken.":"Eine Reihe mit einem angeketteten Block musst du zweimal füllen.","Een tijdbom telt bij elke zet één af. Wis hem met een lijn voor hij op 0 staat, anders ontploft het level.":"Eine Zeitbombe zählt bei jedem Zug eins herunter. Räume sie mit einer Linie ab, bevor sie bei 0 ist, sonst explodiert das Level.","Een vakje onder een blok in een andere kleur blijft leeg tot je die lijn wist.":"Ein Feld unter einem Block in einer anderen Farbe bleibt leer, bis du diese Linie abräumst.","Eindbaas":"Endgegner","Eindbaas verslagen!":"Endgegner besiegt!","Explosies breken kettingen ook.":"Explosionen sprengen auch Ketten.","Eén lijn door twee kisten opent ze allebei, als je genoeg sleutels hebt.":"Eine Linie durch zwei Truhen öffnet beide, wenn du genug Schlüssel hast.","Geluid en trillen":"Ton und Vibration","Geluidseffecten":"Soundeffekte","Geschilderd!":"Gemalt!","Goud":"Gold","Haal 3 sterren op de eindbaas":"Hol 3 Sterne beim Endgegner","Het bord heeft gaten met water. Een rij of kolom is al vol als alle vakjes met land gevuld zijn.":"Das Spielfeld hat Löcher mit Wasser. Eine Reihe oder Spalte ist voll, sobald alle Landfelder gefüllt sind.","Het getal boven het bord toont wanneer de volgende lavarij komt.":"Die Zahl über dem Spielfeld zeigt, wann die nächste Lavareihe kommt.","Hou de bovenste rijen leeg: daar duwt de lava naartoe.":"Halte die oberen Reihen frei: Dorthin schiebt die Lava.","Hou plaats vrij: stenen vallen alleen op lege vakjes.":"Halte Platz frei: Steine fallen nur auf leere Felder.","Hout":"Holz","IJs onder een blok breekt pas als dat blok wordt gewist.":"Eis unter einem Block bricht erst, wenn dieser Block abgeräumt wird.","Kijk eerst naar de bom met het laagste getal.":"Kümmere dich zuerst um die Bombe mit der niedrigsten Zahl.","Kijk eerst welk obstakel het gevaarlijkst is.":"Schau zuerst, welches Hindernis am gefährlichsten ist.","Kist open!":"Truhe offen!","Korte rijen naast het water zijn snel vol.":"Kurze Reihen am Wasser sind schnell voll.","Lange blokken passen niet overal: kijk goed naar de vorm van het eiland.":"Lange Blöcke passen nicht überall: Achte genau auf die Form der Insel.","Lava afgekoeld!":"Lava abgekühlt!","Lava afkoelen · bekijk reclame":"Lava abkühlen · Werbung ansehen","Lava stijgt!":"Die Lava steigt!","Leg een blok in dezelfde kleur op een gekleurd vakje om het te schilderen. Schilder ze allemaal.":"Lege einen Block in derselben Farbe auf ein farbiges Feld, um es zu bemalen. Bemale alle.","Maak de onderste rij vol: sleep het blok van 2 naar de lege vakjes.":"Fülle die unterste Reihe: Ziehe den 2er-Block auf die leeren Felder.","Mos groeit alleen naar lege vakjes: leg blokken ernaast om het in te sluiten.":"Moos wächst nur auf leere Felder: Lege Blöcke daneben, um es einzuschließen.","Naar {x}":"Nach {x}","Neon":"Neon","Nieuwe kaart open: {x}!":"Neue Karte offen: {x}!","Nieuwe medaille!":"Neue Medaille!","Nieuwe medailles!":"Neue Medaillen!","Nieuwe tijdbommen landen op lege vakjes: hou het bord netjes.":"Neue Zeitbomben landen auf leeren Feldern: Halte das Spielfeld ordentlich.","Om de paar beurten schuift er onderaan een rij lava in en duwt alles omhoog. Blokken bovenaan vallen van het bord. Raakt de lava de bovenkant, dan verlies je.":"Alle paar Runden schiebt sich unten eine Lavareihe herein und drückt alles nach oben. Blöcke ganz oben fallen vom Spielfeld. Erreicht die Lava den oberen Rand, verlierst du.","Om de {n} beurten komt er een lavarij bij.":"Alle {n} Runden kommt eine Lavareihe dazu.","Om de {n} beurten landt er een nieuwe tijdbom.":"Alle {n} Runden landet eine neue Zeitbombe.","Om de {n} beurten valt er een steen.":"Alle {n} Runden fällt ein Stein.","Ontmantel {n} tijdbom":"Entschärfe {n} Zeitbombe","Ontmantel {n} tijdbommen":"Entschärfe {n} Zeitbomben","Ontmanteld!":"Entschärft!","Open alle {n} kisten":"Öffne alle {n} Truhen","Open {n} kisten":"Öffne {n} Truhen","Pastel":"Pastell","Raap eerst sleutels op, open daarna de kisten.":"Sammle zuerst Schlüssel, öffne dann die Truhen.","Rij vol, rij weg! Elke volle rij of kolom verdwijnt en geeft punten.":"Reihe voll, Reihe weg! Jede volle Reihe oder Spalte verschwindet und bringt Punkte.","Rijen en kolommen met veel water geven snelle punten.":"Reihen und Spalten mit viel Wasser bringen schnelle Punkte.","Ruim mos snel op, het groeit sneller dan je denkt.":"Räume Moos schnell weg, es wächst schneller, als du denkst.","Ruim {n} mosvakjes op":"Räume {n} Moosfelder weg","Schatgrot":"Schatzhöhle","Schilder alle {n} gekleurde vakjes":"Bemale alle {n} farbigen Felder","Schilder {n} vakjes":"Bemale {n} Felder","Schildersatelier":"Malatelier","Sleep het blok van 2 naar de 2 lege vakjes onderaan.":"Ziehe den 2er-Block auf die 2 leeren Felder unten.","Sleutel nodig!":"Schlüssel nötig!","Sleutel!":"Schlüssel!","Sleutels":"Schlüssel","Sleutels zitten soms in de blokken onderaan: leg ze slim.":"Schlüssel stecken manchmal in den Blöcken unter dem Spielfeld: Lege sie geschickt.","Snoepkleuren":"Bonbonfarben","Spaar power-blokken voor de moeilijkste plek.":"Spare Power-Blöcke für die schwierigste Stelle auf.","Speel thema's vrij met sterren uit de campagne.":"Schalte Themen mit Sternen aus der Kampagne frei.","Stenen vallen om de paar beurten op het bord. Het getal toont hoeveel keer een lijn of explosie hem nog moet raken.":"Alle paar Runden fallen Steine aufs Spielfeld. Die Zahl zeigt, wie oft eine Linie oder Explosion ihn noch treffen muss.","Tijdbom!":"Zeitbombe!","Tijdbommen +5 · bekijk reclame":"Zeitbomben +5 · Werbung ansehen","Tijdbommen en lava eerst, de rest daarna.":"Zuerst Zeitbomben und Lava, dann der Rest.","Tip: {x}":"Tipp: {x}","Trillen":"Vibration","Verder":"Weiter","Verdien {n} sterren op deze kaart":"Verdiene {n} Sterne auf dieser Karte","Versla de eindbaas van {x} om deze kaart te openen.":"Besiege den Endgegner von {x}, um diese Karte zu öffnen.","Vul het gat in een lavarij om hem te wissen.":"Fülle die Lücke in einer Lavareihe, um sie abzuräumen.","Vulkaan":"Vulkan","Werk van buiten naar binnen: hoekijs is het lastigst.":"Arbeite von außen nach innen: Eis in den Ecken ist am schwierigsten.","Win alle {n} levels":"Gewinne alle {n} Levels","Wis 2 lijnen tegelijk voor een Raket. Het spel stopt als er geen blok meer past.":"Räume 2 Linien gleichzeitig für eine Rakete ab. Das Spiel endet, wenn kein Block mehr passt.","Wis een sleutel met een lijn om hem op te rapen. Een lijn door een kist opent hem als je een sleutel hebt.":"Räume einen Schlüssel mit einer Linie ab, um ihn aufzuheben. Eine Linie durch eine Truhe öffnet sie, wenn du einen Schlüssel hast.","Wis {n} lavablokken":"Räume {n} Lavablöcke ab","Wis {n} lijnen":"Räume {n} Linien ab","Wis {n} lijnen op de eilanden":"Räume {n} Linien auf den Inseln ab","Zandwoestijn":"Sandwüste","Zetten tot de volgende lavarij":"Züge bis zur nächsten Lavareihe","gekozen":"gewählt","vergrendeld":"gesperrt","{n} blokken van het bord geduwd":"{n} Blöcke vom Spielfeld geschoben"}};
 const LANGS=[['nl','Nederlands'],['en','English'],['fr','Français'],['de','Deutsch']];
 let LANG=(()=>{try{const v=localStorage.getItem('blockers-lang');if(v)return v;}catch(e){}
   const n=((navigator.languages&&navigator.languages[0])||navigator.language||'en').slice(0,2).toLowerCase();return ['nl','fr','de'].includes(n)?n:'en';})();
@@ -277,15 +304,42 @@ const SHAPES=[[[0,0]],[[0,0],[0,1]],[[0,0],[1,0]],[[0,0],[0,1],[0,2]],[[0,0],[1,
 const rect=(h,w)=>{const a=[];for(let r=0;r<h;r++)for(let c=0;c<w;c++)a.push([r,c]);return a};
 SHAPES.push(rect(3,3),rect(2,3),rect(3,2));
 
-const WORLDS=[
- {name:'Steengroeve',color:'#ff8a3d',tip:'Het getal op een steen toont hoeveel treffers van een lijn of explosie hij nog nodig heeft.'},
- {name:'IJsvlakte',color:'#2fb4f0',tip:'IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.'},
- {name:'Kettingfort',color:'#9a6cf5',tip:'Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.'},
- {name:'Moswoud',color:'#2fbf6a',tip:'Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.'},
- {name:'Meesterproef',color:'#ff4f73',tip:'Alles door elkaar, en er vallen stenen uit de lucht.'}];
-const LEVELS=75;
-const TUNE=[[39,1600,2600],[50,2300,3700],[50,2050,3300],[46,1950,3200],[35,1150,2100],[31,1400,2250],[39,1400,2250],[50,1850,3100],[50,1900,3050],[32,1100,1850],[42,1400,2450],[45,1600,2650],[50,1700,2750],[41,1550,2450],[47,1550,2650],[45,1600,2750],[31,900,1600],[50,1900,3150],[50,2150,3550],[42,1250,2100],[50,1900,3150],[28,950,1900],[50,1700,3000],[50,2200,3650],[38,1250,2050],[34,1500,2400],[44,1750,2850],[50,1800,2950],[46,1700,2800],[50,1700,2700],[50,2050,3300],[50,2150,3500],[50,2150,3500],[19,650,1050],[31,1100,1800],[23,950,1550],[39,1450,2400],[50,1950,3700],[50,2050,3450],[45,1800,2950],[35,1250,2100],[49,1550,2750],[50,1750,2950],[42,1450,2400],[39,1250,2000],[50,2050,3400],[50,1850,3050],[49,2300,3700],[41,1750,2850],[42,1600,2700],[49,2000,3400],[43,1400,2400],[50,2300,3750],[50,2050,3350],[49,2050,3350],[50,2200,3600],[50,1850,3000],[50,1900,3100],[50,2000,3250],[50,2000,3400],[50,1450,2400],[50,2050,3650],[50,2150,3550],[50,1700,3100],[39,1400,2350],[50,1900,3150],[50,1300,2250],[50,2150,3650],[50,1900,3200],[49,1600,2650],[50,2200,3600],[50,1650,2700],[50,1800,3000],[50,1900,3250],[45,2000,3250]];
-const LSCALE={"2":0.35,"3":0.35,"5":0.512,"6":0.35,"8":0.35,"9":0.35,"10":0.603,"11":0.395,"12":0.35,"13":0.35,"14":0.35,"15":0.35,"18":0.35,"19":0.393,"20":2.2,"22":0.35,"23":0.35,"25":0.684,"26":0.35,"28":0.35,"29":0.35,"30":0.35,"31":1.364,"32":1.364,"33":0.35,"34":2.2,"36":0.522,"37":0.6,"38":0.476,"40":0.35,"41":0.593,"43":0.35,"44":0.625,"46":0.672,"48":0.562,"50":1.32,"51":1.409,"52":0.594,"53":0.543,"54":0.733,"55":0.784,"56":0.35,"57":0.35,"58":0.35,"59":0.35,"60":0.35,"66":1.19,"67":0.603,"68":0.36,"69":0.761,"70":0.575,"73":0.42,"74":0.479};
+/* ---------- campaign: 10 maps of 20 levels ---------- */
+const MAPS=[
+ {name:'Steengroeve',ob:'stones',color:'#ff8a3d',bg:['#ffe9d6','#ffd9bd'],
+  tip:'Stenen vallen om de paar beurten op het bord. Het getal toont hoeveel keer een lijn of explosie hem nog moet raken.',
+  tips:['Een lijn door een steen telt als een treffer. Twee lijnen tegelijk raken hem twee keer.','Een bom of raket naast een steen breekt hem sneller.','Hou plaats vrij: stenen vallen alleen op lege vakjes.']},
+ {name:'IJsvlakte',ob:'ice',color:'#2fb4f0',bg:['#e2f5ff','#cbeafc'],
+  tip:'IJs ligt onder een vakje. Leg er een blok op en wis die lijn om het ijs te breken.',
+  tips:['Werk van buiten naar binnen: hoekijs is het lastigst.','Een raket wist een hele rij en kolom ijs in één keer.','IJs onder een blok breekt pas als dat blok wordt gewist.']},
+ {name:'Kettingfort',ob:'locks',color:'#9a6cf5',bg:['#efe7ff','#e0d3ff'],
+  tip:'Geketende blokken tellen mee voor een lijn. De eerste treffer breekt de ketting, de tweede wist het blok.',
+  tips:['Een rij met een geketend blok moet je twee keer vol maken.','Explosies breken kettingen ook.','Bevrijd eerst de kettingen in het midden: daar komen de meeste lijnen samen.']},
+ {name:'Moswoud',ob:'moss',color:'#2fbf6a',bg:['#e3f7e8','#cfeeda'],
+  tip:'Mos groeit om de paar zetten naar een leeg vakje ernaast. Wis het weg voor het bord dichtgroeit.',
+  tips:['Mos groeit alleen naar lege vakjes: leg blokken ernaast om het in te sluiten.','Ruim mos snel op, het groeit sneller dan je denkt.','Een bom ruimt een hele mosplek in één keer op.']},
+ {name:'Zandwoestijn',ob:'bombs',color:'#e0a526',bg:['#fff4d6','#ffe7b0'],
+  tip:'Een tijdbom telt bij elke zet één af. Wis hem met een lijn voor hij op 0 staat, anders ontploft het level.',
+  tips:['Kijk eerst naar de bom met het laagste getal.','Een explosie van een power-blok ontmantelt ook tijdbommen.','Nieuwe tijdbommen landen op lege vakjes: hou het bord netjes.']},
+ {name:'Archipel',ob:'holes',color:'#1fb5a5',bg:['#dcf6f2','#c4ede7'],
+  tip:'Het bord heeft gaten met water. Een rij of kolom is al vol als alle vakjes met land gevuld zijn.',
+  tips:['Korte rijen naast het water zijn snel vol.','Lange blokken passen niet overal: kijk goed naar de vorm van het eiland.','Rijen en kolommen met veel water geven snelle punten.']},
+ {name:'Schildersatelier',ob:'paint',color:'#e8559a',bg:['#ffe6f1','#ffd3e6'],
+  tip:'Leg een blok in dezelfde kleur op een gekleurd vakje om het te schilderen. Schilder ze allemaal.',
+  tips:['Alleen de kleur van het blok telt, niet de vorm.','Een vakje onder een blok in een andere kleur blijft leeg tot je die lijn wist.','Bewaar een blok in de juiste kleur voor de lastige vakjes.']},
+ {name:'Schatgrot',ob:'chests',color:'#c9932b',bg:['#fbf0dc','#f3e1bf'],
+  tip:'Wis een sleutel met een lijn om hem op te rapen. Een lijn door een kist opent hem als je een sleutel hebt.',
+  tips:['Raap eerst sleutels op, open daarna de kisten.','Sleutels zitten soms in de blokken onderaan: leg ze slim.','Eén lijn door twee kisten opent ze allebei, als je genoeg sleutels hebt.']},
+ {name:'Vulkaan',ob:'lava',color:'#ff5a36',bg:['#ffe4dc','#ffcfc0'],
+  tip:'Om de paar beurten schuift er onderaan een rij lava in en duwt alles omhoog. Blokken bovenaan vallen van het bord. Raakt de lava de bovenkant, dan verlies je.',
+  tips:['Vul het gat in een lavarij om hem te wissen.','Hou de bovenste rijen leeg: daar duwt de lava naartoe.','Het getal boven het bord toont wanneer de volgende lavarij komt.']},
+ {name:'Meesterproef',ob:'mix',color:'#ff4f73',bg:['#ffe3ea','#ffd0dc'],
+  tip:'Alle obstakels door elkaar. Toon wat je geleerd hebt!',
+  tips:['Kijk eerst welk obstakel het gevaarlijkst is.','Spaar power-blokken voor de moeilijkste plek.','Tijdbommen en lava eerst, de rest daarna.']}];
+const MAPSIZE=20, LEVELS=MAPS.length*MAPSIZE;
+const TUNE=[[35,2100,2450],[41,2600,3000],[50,3350,3850],[40,2800,3200],[32,1950,2400],[26,1600,1850],[50,3150,3600],[31,1500,1800],[32,1750,2000],[36,2050,2600],[37,2300,3050],[39,2100,2450],[39,2050,2450],[38,2250,2650],[46,2300,2650],[34,2200,2500],[39,2150,2450],[41,2050,2350],[47,2950,3600],[42,2300,2700],[30,2100,2400],[41,2400,2750],[50,3100,3850],[33,1850,2450],[39,2450,2900],[32,1900,2250],[29,1750,2000],[36,1800,2150],[31,1800,2100],[42,2600,2950],[29,1450,1800],[37,2150,2600],[29,1550,1800],[42,2200,3100],[37,1850,2200],[49,3350,3850],[45,3250,3750],[45,2650,3000],[34,2200,2550],[42,2450,2850],[36,1850,2250],[35,1900,2600],[49,3350,3850],[28,1550,1900],[40,2200,2550],[38,2250,2700],[42,2300,2650],[32,1750,2050],[23,1450,1650],[29,1600,2250],[35,1900,2200],[29,1850,2100],[46,2750,3150],[37,1900,2350],[39,2300,2650],[42,2200,2850],[47,2550,2900],[43,2200,2750],[39,2800,3250],[37,1950,2200],[42,2600,3000],[37,2750,3150],[38,2750,3150],[39,2500,3050],[33,1750,2350],[38,2400,3150],[41,2550,3000],[40,2200,2700],[38,2150,2750],[50,3050,3950],[41,2900,3350],[35,2450,2800],[39,2400,2850],[50,3150,3600],[32,1950,2600],[37,2300,2850],[50,3300,3800],[44,2850,3250],[50,3550,4250],[45,2850,3300],[14,600,1150],[21,1200,1350],[20,1050,1250],[17,900,1050],[12,600,750],[22,1250,1550],[47,2550,2950],[32,1600,1850],[39,1900,2200],[42,2000,2350],[28,1450,1800],[31,1500,2050],[31,1750,2100],[26,1300,1550],[35,1700,2050],[27,1450,1850],[39,2150,2450],[36,1800,2050],[42,2400,2800],[38,2150,2450],[28,1300,1700],[24,1400,1700],[29,1500,1700],[25,1550,2200],[23,1150,1300],[29,6450,7450],[28,2200,2900],[36,2200,2750],[35,1800,2200],[45,3100,3600],[45,3400,3900],[42,3150,3600],[38,1950,2200],[32,5800,8050],[28,1300,1800],[29,1700,2000],[45,2900,3300],[39,2600,3000],[23,1250,1500],[38,2650,3050],[28,2000,2300],[43,2500,3000],[31,1750,2050],[49,2900,3450],[39,1950,2600],[37,2200,2900],[40,2500,2850],[42,1750,2350],[44,2700,3200],[36,2250,2550],[40,2400,2750],[12,600,700],[31,2000,2350],[45,2100,2900],[29,1900,2200],[31,1900,2350],[36,2150,2450],[50,3250,3850],[49,3200,3700],[36,1850,2450],[46,2750,3300],[50,2700,3700],[41,2500,3050],[42,2550,3050],[35,2000,2550],[49,3550,4200],[50,3650,4200],[38,1600,2050],[43,2700,3300],[27,1550,1800],[35,2000,2700],[47,3000,3650],[36,2250,2700],[36,2300,2800],[39,2650,3050],[32,1950,2350],[44,2300,2950],[47,2900,3350],[40,3000,3450],[50,3800,4400],[32,1600,1850],[32,1650,1950],[36,1800,2150],[29,1350,1700],[32,1350,1900],[32,1650,1900],[31,1450,1700],[41,1800,2550],[32,1650,1900],[38,1850,2150],[32,1700,1950],[29,1500,1700],[42,2500,2900],[22,1300,1500],[31,1850,2150],[37,2100,2450],[32,1900,2200],[29,1350,1600],[29,1600,1850],[38,1850,2300],[32,1900,2150],[37,2000,2300],[47,3400,4050],[35,1850,2150],[49,2450,3000],[43,2550,3200],[37,2750,3150],[43,1950,2600],[42,2150,2500],[45,2500,2950],[49,3150,3650],[24,1550,1750],[43,2950,3350],[39,2050,2600],[50,2850,3600],[39,2000,2350],[44,2450,2800],[39,2450,2800],[47,2450,3150],[48,2850,3300]];
+const LSCALE={"3":0.3,"5":0.66,"6":0.312,"7":0.3,"8":0.667,"10":0.642,"11":0.668,"12":0.3,"13":0.3,"14":0.3,"15":0.3,"16":0.3,"17":0.3,"18":0.3,"19":0.3,"20":0.3,"21":0.525,"23":0.3,"24":2.118,"25":0.741,"26":0.433,"28":0.558,"29":1.6,"30":0.326,"31":0.3,"32":0.3,"34":0.599,"35":0.603,"36":0.3,"38":0.3,"39":0.3,"40":0.414,"43":0.45,"44":1.6,"47":0.765,"48":0.591,"49":2.2,"52":2.2,"53":0.531,"54":0.703,"55":0.316,"56":0.3,"57":0.45,"58":0.605,"60":0.398,"63":0.456,"65":0.703,"68":0.528,"70":0.775,"73":0.589,"74":0.3,"75":0.331,"76":0.3,"77":0.3,"78":0.45,"79":0.3,"80":0.315,"81":2.2,"82":1.6,"84":2.2,"85":0.885,"86":2.2,"87":0.571,"88":0.39,"89":0.6,"90":0.455,"91":0.6,"92":0.349,"93":0.351,"94":0.56,"95":0.455,"96":0.48,"97":0.36,"98":0.36,"99":0.339,"100":0.338,"105":0.82,"106":2.2,"108":0.344,"109":0.743,"110":0.3,"111":0.3,"112":0.3,"113":0.36,"114":0.3,"115":0.36,"116":0.308,"117":0.3,"119":0.3,"120":0.479,"128":0.315,"129":0.651,"130":0.821,"131":0.517,"132":0.3,"133":1.027,"134":0.483,"135":0.549,"136":0.3,"137":0.3,"138":0.321,"139":0.341,"140":0.3,"145":0.703,"146":0.3,"148":0.332,"150":0.3,"151":0.458,"152":0.757,"153":0.3,"154":0.483,"156":0.362,"157":0.3,"158":0.3,"166":1.6,"167":1.179,"168":0.3,"171":1.253,"173":1.556,"174":0.885,"176":1.587,"179":1.089,"181":0.493,"183":0.462,"186":0.465,"188":0.324,"189":0.608,"190":0.728,"191":0.6,"192":0.3,"193":0.674,"194":0.721,"197":0.323,"198":0.414};
+const LVAR={"85":1,"86":1,"114":6,"119":3,"137":2};
 const grid0=()=>Array.from({length:N},()=>Array(N).fill(null));
 const zero0=()=>Array.from({length:N},()=>Array(N).fill(0));
 
@@ -299,59 +353,114 @@ function patternOrder(kind,rng){
     corners:([r,c,j])=>-Math.hypot(r-3.5,c-3.5)+j*.6,
     diag:([r,c,j])=>Math.min(Math.abs(r-c),Math.abs(r+c-7))+j*.9,
     cols:([r,c,j])=>Math.min(Math.abs(c-2),Math.abs(c-5))*2+j,
-    rows:([r,c,j])=>Math.min(Math.abs(r-2),Math.abs(r-5))*2+j}[kind];
+    rows:([r,c,j])=>Math.min(Math.abs(r-2),Math.abs(r-5))*2+j,
+    top:([r,c,j])=>r*2+j,
+    bottom:([r,c,j])=>(7-r)*2+j}[kind];
   return all.sort((a,b)=>key(a)-key(b)).map(([r,c])=>[r,c]);
 }
-function makeLevel(n,scale){
-  const w=Math.floor((n-1)/15), i=(n-1)%15, rng=mulberry32(n*7919+13);
-  const hard=i%5===4, easy=i%5===0&&i>0, sc=(scale||LSCALE)[n]||1;
-  const k=v=>Math.max(1,Math.round(v*sc*(hard?1.2:easy?.8:1)));
-  const lv={n,w,i,seed:(n*2654435761)>>>0,goals:[],cells:[],ice:[],drop:0,dropMax:2,moss:0,mossN:1,hard,easy};
+// Island boards: water cells; every row and column keeps at least 4 land cells.
+const ISLANDS=[
+ ['........','........','........','...##...','...##...','........','........','........'],
+ ['##....##','#......#','........','........','........','........','#......#','##....##'],
+ ['........','.##..##.','.##..##.','........','........','.##..##.','.##..##.','........'],
+ ['....#...','....#...','....#...','####....','....####','...#....','...#....','...#....'],
+ ['#......#','.#....#.','..#..#..','........','........','..#..#..','.#....#.','#......#'],
+ ['###..###','##....##','#......#','........','........','#......#','##....##','###..###'],
+ ['........','..####..','..#..#..','..#..#..','..#..#..','..#..#..','..####..','........'],
+ ['#.#.#.#.','........','#......#','........','........','#......#','........','.#.#.#.#']];
+function makeLevel(n,scale,variant){
+  const vr=variant??LVAR[n]??0, m=Math.floor((n-1)/MAPSIZE), i=(n-1)%MAPSIZE, rng=mulberry32(n*7919+13+vr*104729), map=MAPS[m];
+  const hard=i%5===4, boss=i===MAPSIZE-1, easy=i%5===0&&i>0, sc=(scale||LSCALE)[n]||1;
+  const k=v=>Math.max(1,Math.round(v*sc*(boss?1.3:hard?1.2:easy?.8:1)));
+  const lv={n,m,w:m,i,vr,seed:((n+vr*1000)*2654435761)>>>0,goals:[],cells:[],ice:[],paint:[],holes:[],drop:0,dropMax:2,moss:0,mossN:1,
+    bombT:0,bombDrop:0,lava:0,lavaGap:2,lavaStart:0,keys:0,hard,boss,easy,intro:i===0};
   const occ=new Set();
   const pat=()=>PATS[Math.floor(rng()*PATS.length)];
   const col=()=>COLORS[Math.floor(rng()*COLORS.length)];
-  const put=(kind,count,make)=>{const o=patternOrder(kind,rng);let m=0;
-    for(const [r,c] of o){if(m>=count)break;const q=r*N+c;if(occ.has(q))continue;occ.add(q);lv.cells.push({r,c,...make(m)});m++;}return m;};
-  const ice=(count,goal)=>{const o=patternOrder(pat(),rng),s=new Set(lv.ice.map(([r,c])=>r*N+c));let m=0;
-    for(const [r,c] of o){if(m>=count)break;const q=r*N+c;if(s.has(q))continue;const x=lv.cells.find(e=>e.r===r&&e.c===c);if(x&&x.t!=='block')continue;s.add(q);lv.ice.push([r,c]);m++;}
+  const put=(kind,count,make,rows)=>{const o=patternOrder(kind,rng);let made=0;
+    for(const [r,c] of o){if(made>=count)break;if(rows&&!rows(r))continue;const q=r*N+c;if(occ.has(q))continue;occ.add(q);lv.cells.push({r,c,...make(made)});made++;}return made;};
+  const holes=layout=>{layout.forEach((row,r)=>[...row].forEach((ch,c)=>{if(ch==='#'){occ.add(r*N+c);lv.holes.push([r,c]);}}));};
+  const ice=(count,goal)=>{const o=patternOrder(pat(),rng),s=new Set(lv.ice.map(([r,c])=>r*N+c));let made=0;
+    for(const [r,c] of o){if(made>=count)break;const q=r*N+c;if(s.has(q))continue;const x=lv.cells.find(e=>e.r===r&&e.c===c);if((x&&x.t!=='block')||lv.holes.some(([a,b])=>a===r&&b===c))continue;s.add(q);lv.ice.push([r,c]);made++;}
     if(goal)lv.goals.push({t:'ice'});};
-  const stones=(cnt,goal,str3,soft)=>{const m=put(pat(),cnt,j=>({t:'stone',v:soft===1?1:soft===.5?(j%2?2:1):str3&&j%3===2?3:2}));if(goal)lv.goals.push({t:'stones',target:m});};
+  const stones=(cnt,goal,str3,soft)=>{const made=put(pat(),cnt,j=>({t:'stone',v:soft===1?1:soft===.5?(j%2?2:1):str3&&j%3===2?3:2}));if(goal)lv.goals.push({t:'stones',target:made});};
   const locks=(cnt,goal)=>{put(pat(),cnt,()=>({t:'lock',color:col()}));if(goal)lv.goals.push({t:'locks'});};
   const moss=(cnt,goal,every)=>{put(pat(),cnt,()=>({t:'moss'}));lv.moss=every;if(goal)lv.goals.push({t:'moss'});};
-  const junk=cnt=>put(pat(),cnt,()=>({t:'block',color:col()}));
-  const scoreLv=i===6;
-  if(w===0){
-    stones(k(3+i*.4),!scoreLv,i>=11,i<5?1:i<10?.5:0);
+  const junk=(cnt,rows)=>put(pat(),cnt,()=>({t:'block',color:col()}),rows);
+  // an easier level (scale < 1) also gets more time on its bombs
+  const bombs=(cnt,t,goal,extra,dropEvery)=>{t=Math.round(t/Math.min(1,Math.max(.5,sc)));const made=put(pat(),cnt,j=>({t:'bomb',color:col(),v:t+j*3}));lv.bombT=t+2;
+    if(dropEvery)lv.bombDrop=dropEvery;if(goal)lv.goals.push({t:'bombs',target:made+(extra||0)});};
+  const paint=(cnt,ncol)=>{const cols=COLORS.slice().sort(()=>rng()-.5).slice(0,ncol),o=patternOrder(pat(),rng);let made=0;
+    for(const [r,c] of o){if(made>=cnt)break;const q=r*N+c;if(occ.has(q))continue;occ.add(q);lv.paint.push([r,c,COLORS.indexOf(cols[made%ncol])+1]);made++;}
+    lv.goals.push({t:'paint'});};
+  const chests=(cnt,keys)=>{put(pat(),cnt,()=>({t:'chest'}),r=>r>=1&&r<=6);put('bottom',keys,()=>({t:'key',color:col()}),r=>r>=5);lv.keys=1;lv.goals.push({t:'chests'});};
+  // an easier level (scale < 1) gets lava less often and with wider gaps
+  const lava=(every,gap,start,target)=>{const ez=Math.min(1,Math.max(.5,sc));lv.lava=Math.round(every/ez);lv.lavaGap=gap+(ez<.75?1:0);lv.lavaStart=start;
+    for(let r=N-start;r<N;r++){const gaps=new Set();while(gaps.size<gap)gaps.add(Math.floor(rng()*N));for(let c=0;c<N;c++){if(gaps.has(c))continue;occ.add(r*N+c);lv.cells.push({r,c,t:'lava'});}}
+    if(target)lv.goals.push({t:'lava',target});};
+  // 'make a power block' goals only in the first half of a map, so late levels stay short
+  const makeGoal=sp=>{if(i<10)lv.goals.push({t:'make',sp,target:1});};
+  const scoreLv=i===7;
+  if(m===0){
+    stones(k(3+i*.35),!scoreLv,i>=13,i<5?1:i<11?.5:0);
     if(i%5===3)junk(6);
-    if(i>=9)lv.drop=4;
-    if(i%5===2)lv.goals.push({t:'make',sp:'raket',target:1});
-  }else if(w===1){
-    if(i%3===1)junk(5+Math.floor(i/3));
-    ice(k(6+i*.9),!scoreLv);
-    if(i>=6)stones(k(2+(i-6)*.3),i>=10,false,.5);
-    if(i%5===2)lv.goals.push({t:'make',sp:'raket',target:1});
-  }else if(w===2){
-    locks(k(3+i*.45),!scoreLv);
-    if(i>=5)ice(k(5+(i-5)*.6),i>=9);
-    if(i%2===1&&i<9)stones(2,false,false,1);
-    if(i%5===2)lv.goals.push({t:'make',sp:'raket',target:1});
-  }else if(w===3){
-    moss(k(2+i*.2),!scoreLv,i>=10?2:3);
-    if(i>=5)locks(k(3+(i-5)*.3),i>=10);
+    if(i>=8)lv.drop=i>=16?3:4;
+    if(i%5===2)makeGoal('raket');
+  }else if(m===1){
+    if(i%3===1)junk(5+Math.floor(i/4));
+    ice(k(6+i*.75),!scoreLv);
+    if(i>=8)stones(k(2+(i-8)*.25),i>=13,false,.5);
+    if(i%5===2)makeGoal('raket');
+  }else if(m===2){
+    locks(k(3+i*.4),!scoreLv);
+    if(i>=6)ice(k(5+(i-6)*.5),i>=12);
+    if(i%2===1&&i<10)stones(2,false,false,1);
+    if(i%5===2)makeGoal('raket');
+  }else if(m===3){
+    moss(k(2+i*.18),!scoreLv,i>=13?2:3);
+    if(i>=6)locks(k(3+(i-6)*.25),i>=12);
+    if(i%5===2)makeGoal('raket');
+  }else if(m===4){
+    const t=i===0?18:Math.max(9,16-Math.floor(i/3));
+    bombs(k(1+i*.15),t,!scoreLv,i>=6?k(1+i*.2):0,i>=6?(i>=14?3:4):0);
+    if(i>=10)junk(4+Math.floor((i-10)/2));
+    if(i>=15)stones(k(2),false,false,.5);
+  }else if(m===5){
+    holes(ISLANDS[i%ISLANDS.length]);
+    if(!scoreLv)lv.goals.push({t:'lines',target:k(8+i*.6)});
+    if(i>=4)stones(k(2+(i-4)*.25),i>=9);
+    if(i>=11)ice(k(4+(i-11)*.5),true);
+    if(i>=15)lv.drop=4;
+  }else if(m===6){
+    if(i%3===2)junk(5);
+    paint(k(4+i*.5),Math.min(6,2+Math.floor(i/4)));
+    if(i>=8)locks(k(2+(i-8)*.25),i>=13);
+    if(i>=15)moss(k(2),false,3);
+  }else if(m===7){
+    chests(k(2+i*.2),Math.min(3,1+Math.floor(i/7)));
+    if(i>=5)stones(k(2+(i-5)*.2),false,false,.5);
+    if(i>=10)ice(k(4+(i-10)*.4),i>=14);
+  }else if(m===8){
+    const every=scoreLv?4:i<5?4:i<12?3:2;
+    lava(every,i<10?2:1,i<3?1:2,scoreLv?0:k(10+i*1.2));
+    if(i>=8)stones(k(2+(i-8)*.2),false,false,.5);
   }else{
-    const m=i%3;
-    if(m===0){stones(k(3+i*.2),true,true,i<6?.5:0);ice(k(8+i*.4),true);}
-    else if(m===1){locks(k(3+i*.25),true);moss(k(2+i*.12),true,3);}
-    else{ice(k(7+i*.4),true);locks(k(3+i*.25),true);}
-    if(i>=8){lv.drop=4;lv.dropMax=3;}
+    const v=i%5;
+    if(v===0){stones(k(3+i*.15),true,true,.5);bombs(k(1+i*.08),11,true,k(1),4);}
+    else if(v===1){holes(ISLANDS[(i/5|0)%ISLANDS.length]);paint(k(5+i*.25),4);if(i>=11)locks(k(2),true);}
+    else if(v===2){chests(k(2+i*.12),2);moss(k(2+i*.08),true,3);}
+    else if(v===3){lava(3,i<10?2:1,1,k(10+i*.6));bombs(k(1),12,true,k(1),5);}
+    else{ice(k(7+i*.3),true);stones(k(3+i*.15),true,i>=14,.5);lv.drop=4;}
   }
-  if(scoreLv)lv.goals=[{t:'score',target:Math.round((700+n*14)*sc/50)*50}];
-  // never start with a full row or column
-  for(let guard=0;guard<20;guard++){
-    const g=grid0();lv.cells.forEach(e=>g[e.r][e.c]=1);let fixed=false;
+  if(scoreLv)lv.goals=[{t:'score',target:Math.round((800+n*10)*sc/50)*50}];
+  if(!lv.goals.length)lv.goals.push({t:'lines',target:k(8)});
+  // never start with a full row or column (water counts as filled)
+  for(let guard=0;guard<30;guard++){
+    const g=grid0();lv.cells.forEach(e=>g[e.r][e.c]=1);lv.holes.forEach(([r,c])=>g[r][c]=1);let fixed=false;
     for(let x=0;x<N&&!fixed;x++){
-      if(g[x].every(Boolean)){const j=lv.cells.findIndex(e=>e.r===x&&e.t==='block')>=0?lv.cells.findIndex(e=>e.r===x&&e.t==='block'):lv.cells.findIndex(e=>e.r===x);lv.cells.splice(j,1);fixed=true;}
-      else if(g.every(row=>row[x])){const j=lv.cells.findIndex(e=>e.c===x);lv.cells.splice(j,1);fixed=true;}}
+      const pick=f=>{let j=lv.cells.findIndex(e=>f(e)&&e.t==='block');if(j<0)j=lv.cells.findIndex(e=>f(e)&&e.t==='lava');if(j<0)j=lv.cells.findIndex(e=>f(e));return j;};
+      if(g[x].every(Boolean)){const j=pick(e=>e.r===x);if(j>=0){lv.cells.splice(j,1);fixed=true;}}
+      else if(g.every(row=>row[x])){const j=pick(e=>e.c===x);if(j>=0){lv.cells.splice(j,1);fixed=true;}}}
     if(!fixed)break;
   }
   lv.goals.forEach(g=>{if(g.t==='stones')g.target=Math.min(g.target,lv.cells.filter(e=>e.t==='stone').length)||1;});
@@ -361,23 +470,31 @@ function makeLevel(n,scale){
 
 /* ---------- state & rules ---------- */
 function newState(o){
-  const st={mode:o.mode,lvl:o.lvl||null,grid:grid0(),ice:zero0(),tray:[],score:0,combo:0,rounds:0,moves:0,
-    prng:mulberry32(o.seed),srng:mulberry32(o.seed^0x5bd1e995),stats:{stones:0,made:{raket:0,bom:0,prisma:0},unlocked:0,ice:0,moss:0}};
+  const st={mode:o.mode,lvl:o.lvl||null,grid:grid0(),ice:zero0(),paint:zero0(),tray:[],score:0,combo:0,rounds:0,moves:0,keys:0,boom:null,overflow:false,
+    prng:mulberry32(o.seed),srng:mulberry32(o.seed^0x5bd1e995),
+    stats:{stones:0,made:{raket:0,bom:0,prisma:0},unlocked:0,ice:0,moss:0,bombs:0,paint:0,chests:0,keys:0,lava:0,lines:0}};
   if(st.lvl){
-    for(const e of st.lvl.cells)st.grid[e.r][e.c]=e.t==='stone'?{stone:e.v,max:e.v}:e.t==='lock'?{color:e.color,lock:true}:e.t==='moss'?{moss:true}:{color:e.color};
+    for(const e of st.lvl.cells)st.grid[e.r][e.c]=e.t==='stone'?{stone:e.v,max:e.v}:e.t==='lock'?{color:e.color,lock:true}:e.t==='moss'?{moss:true}
+      :e.t==='bomb'?{color:e.color,bomb:e.v}:e.t==='chest'?{chest:true}:e.t==='key'?{color:e.color,key:true}:e.t==='lava'?{lava:true}:{color:e.color};
+    for(const [r,c] of st.lvl.holes)st.grid[r][c]={hole:true};
     for(const [r,c] of st.lvl.ice)st.ice[r][c]=1;
+    for(const [r,c,v] of st.lvl.paint)st.paint[r][c]=v;
   }
   return st;
 }
 function fitsG(st,p,r,c){return p.cells.every(([dr,dc])=>{const R=r+dr,K=c+dc;return R>=0&&K>=0&&R<N&&K<N&&!st.grid[R][K]})}
 function fitsAnyG(st,p){for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(fitsG(st,p,r,c))return true;return false}
-function fullLines(g){const rows=[],cols=[];for(let i=0;i<N;i++){if(g[i].every(x=>x))rows.push(i);if(g.every(row=>row[i]))cols.push(i);}return {rows,cols};}
+// water counts as filled, but a line needs at least one real cell
+function fullLines(g){const rows=[],cols=[];
+  for(let i=0;i<N;i++){if(g[i].every(x=>x)&&g[i].some(x=>!x.hole))rows.push(i);if(g.every(row=>row[i])&&g.some(row=>!row[i].hole))cols.push(i);}return {rows,cols};}
 function newPiece(st,fill=0){let cells=SHAPES[Math.floor(st.prng()*SHAPES.length)];
   // on a crowded board big shapes are re-drawn more often (never in duels: both players must get the same blocks)
   if(fill>0&&cells.length>=5&&st.prng()<fill*1.3)cells=SHAPES[Math.floor(st.prng()*SHAPES.length)];
   if(fill>.55&&cells.length>=6&&st.prng()<fill)cells=SHAPES[Math.floor(st.prng()*14)];
   return {cells,color:COLORS[Math.floor(st.prng()*COLORS.length)],w:Math.max(...cells.map(p=>p[1]))+1,h:Math.max(...cells.map(p=>p[0]))+1};}
-const countFilled=st=>st.grid.reduce((s,row)=>s+row.filter(Boolean).length,0);
+const countIf=(st,f)=>{let n=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(f(st.grid[r][c],r,c))n++;return n;};
+const countFilled=st=>countIf(st,x=>x&&!x.hole);
+const landCount=st=>N*N-countIf(st,x=>x&&x.hole);
 function canClear(st,p){
   for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(!fitsG(st,p,r,c))continue;
     const set=new Set(p.cells.map(([a,b])=>(r+a)*N+c+b));
@@ -386,21 +503,50 @@ function canClear(st,p){
       if(row||col)return true;}}
   return false;
 }
+function emptyCell(st,rng,rows){
+  const k0=Math.floor(rng()*N*N);
+  for(let i=0;i<N*N;i++){const j=(k0+i)%(N*N),r=Math.floor(j/N),c=j%N;if(rows&&!rows(r))continue;if(!st.grid[r][c])return [r,c];}
+  return null;
+}
 function dropStone(st){
-  const k0=Math.floor(st.srng()*N*N);let k=-1;
-  for(let i=0;i<N*N;i++){const j=(k0+i)%(N*N);if(!st.grid[Math.floor(j/N)][j%N]){k=j;break;}}
-  if(k<0)return null;
-  const r=Math.floor(k/N),c=k%N,m=st.lvl?st.lvl.dropMax:(st.rounds>=25?3:2);
+  const at=emptyCell(st,st.srng);if(!at)return null;
+  const [r,c]=at,m=st.lvl?st.lvl.dropMax:(st.rounds>=25?3:2);
   st.grid[r][c]={stone:m,max:m};return {r,c};
 }
+function dropBomb(st){
+  if(countIf(st,x=>x&&x.bomb)>=3)return null;
+  const at=emptyCell(st,st.srng);if(!at)return null;
+  const [r,c]=at;st.grid[r][c]={color:COLORS[Math.floor(st.srng()*COLORS.length)],bomb:st.lvl.bombT};return {r,c};
+}
+// Lava pushes every row up one and a new lava row with gaps comes in at the bottom.
+// Blocks pushed off the top are lost; lava that reaches the top ends the level.
+function lavaRise(st){
+  if(st.grid[0].some(x=>x&&x.lava)){st.overflow=true;return {overflow:true};}
+  const lost=st.grid[0].filter(x=>x&&!x.hole).length;
+  const holes=st.grid.map(row=>row.map(x=>!!(x&&x.hole)));
+  const moving=st.grid.map(row=>row.map(x=>x&&!x.hole?x:null));
+  for(let r=0;r<N-1;r++)for(let c=0;c<N;c++){if(holes[r][c])continue;st.grid[r][c]=moving[r+1][c];}
+  const gaps=new Set();let tries=0;
+  while(gaps.size<st.lvl.lavaGap&&tries++<50){const c=Math.floor(st.srng()*N);if(!holes[N-1][c])gaps.add(c);}
+  for(let c=0;c<N;c++){if(holes[N-1][c])continue;st.grid[N-1][c]=gaps.has(c)?null:{lava:true};}
+  return {rise:true,lost};
+}
+function keysNeeded(st){
+  const chests=countIf(st,x=>x&&x.chest);if(!chests)return 0;
+  const onBoard=countIf(st,x=>x&&x.key),inTray=st.tray.filter(p=>p&&p.key!=null).length;
+  return chests-st.keys-onBoard-inTray;
+}
 function refillG(st,noStone){
-  st.rounds++;const out={drop:null,bonus:-1};
-  const every=st.lvl?st.lvl.drop:3;
+  st.rounds++;const out={drop:null,bonus:-1,bomb:null,lava:null,key:-1};
+  const lv=st.lvl,every=lv?lv.drop:3;
+  if(lv&&lv.lava&&st.rounds>1&&(st.rounds-1)%lv.lava===0){out.lava=lavaRise(st);if(st.overflow)return out;}
   if(!noStone&&every&&st.rounds>1&&(st.rounds-1)%every===0)out.drop=dropStone(st);
+  if(lv&&lv.bombDrop&&st.rounds>1&&(st.rounds-1)%lv.bombDrop===0)out.bomb=dropBomb(st);
   if(st.mode==='duel')st.tray=[newPiece(st),newPiece(st),newPiece(st)];
   else{
     // fair generator: prefer sets that fit, and on a crowded board one that can finish a line
-    const fill=countFilled(st)/(N*N);let best=null,bs=-1;
+    // water counts as filled, so island boards get smaller blocks
+    const fill=countIf(st,x=>x)/(N*N);let best=null,bs=-1;
     for(let t=0;t<8;t++){const tr=[newPiece(st,fill),newPiece(st,fill),newPiece(st,fill)];
       const fc=tr.filter(p=>fitsAnyG(st,p)).length,help=fill>=.5&&tr.some(p=>canClear(st,p));
       const s=fc*10+(help?5:0);if(s>bs){bs=s;best=tr;}
@@ -409,16 +555,19 @@ function refillG(st,noStone){
   }
   if(st.rounds%4===0){const i=Math.floor(st.prng()*3),u=st.prng(),roll=st.prng(),p=st.tray[i];
     p.bonus={cell:Math.floor(u*p.cells.length),sp:roll<.6?'raket':roll<.9?'bom':'prisma'};out.bonus=i;}
+  // treasure cave: make sure there are always enough keys for the chests left
+  if(lv&&lv.keys&&keysNeeded(st)>0){const order=[0,1,2].sort(()=>st.srng()-.5);
+    for(const i of order){const p=st.tray[i];const cand=p.cells.map((_,j)=>j).filter(j=>!(p.bonus&&p.bonus.cell===j));
+      if(cand.length){p.key=cand[Math.floor(st.srng()*cand.length)];out.key=i;break;}}}
   return out;
 }
-// campaign: when nothing fits, deal new blocks instead of ending the level
+// kept for older callers
 function rerollTray(st){
   for(let t=0;t<20;t++){const tr=[newPiece(st),newPiece(st),newPiece(st)];if(tr.some(p=>fitsAnyG(st,p))){st.tray=tr;return true;}}
   const one={cells:[[0,0]],color:COLORS[Math.floor(st.prng()*COLORS.length)],w:1,h:1};
   st.tray=[one,{...one},{...one}];return st.tray.some(p=>fitsAnyG(st,p));
 }
 const trayStuck=st=>!st.tray.some(p=>p&&fitsAnyG(st,p));
-const countIf=(st,f)=>{let n=0;for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(f(st.grid[r][c],r,c))n++;return n;};
 function spreadMoss(st){
   const out=[];
   for(let t=0;t<(st.lvl.mossN||1);t++){
@@ -437,21 +586,22 @@ function areaOf(st,cell,r,c){
   else if(cell.sp==='prisma'){for(let a=0;a<N;a++)for(let b=0;b<N;b++){const x=st.grid[a][b];if(x&&!x.stone&&x.color===cell.color&&!(a===r&&b===c))out.push([a,b]);}}
   return out;
 }
-// Breadth-first through detonations. Each event: hit | break (stone) | unlock (chain) | remove (block, moss, power block)
+// Breadth-first through detonations. Each event: hit | break (stone) | unlock (chain) | open (chest) | remove (block, moss, lava, key, bomb, power block)
 function resolveG(st,start){
-  const done=new Set(),remove=[],events=[];
+  const done=new Set(),remove=[],events=[],chests=[];
   const q=start.map(s=>({...s,par:-1,w:0}));
-  let det=0,broken=0,hits=0,unl=0,iceB=0,mossC=0,chain=0,dets=0;
+  let det=0,broken=0,hits=0,unl=0,iceB=0,mossC=0,chain=0,dets=0,bombsD=0,lavaC=0,keysG=0;
   while(q.length){
     q.sort((x,y)=>x.w-y.w);
     const it=q.shift(),key=it.a*N+it.b;
     if(done.has(key))continue;done.add(key);
-    const cell=st.grid[it.a][it.b];if(!cell)continue;
+    const cell=st.grid[it.a][it.b];if(!cell||cell.hole)continue;
     const ev={a:it.a,b:it.b,par:it.par,w:it.w,d:it.d,o:it.o,cell};
+    if(cell.chest){chests.push(ev);continue;}
     if(cell.stone){hits++;cell.stone--;if(cell.stone<=0){broken++;ev.kind='break';remove.push([it.a,it.b]);}else ev.kind='hit';}
     else if(cell.lock){cell.lock=false;unl++;ev.kind='unlock';}
     else{
-      ev.kind='remove';remove.push([it.a,it.b]);if(cell.moss)mossC++;
+      ev.kind='remove';remove.push([it.a,it.b]);if(cell.moss)mossC++;if(cell.bomb)bombsD++;if(cell.lava)lavaC++;if(cell.key){keysG++;st.keys++;}
       if(cell.sp){const area=areaOf(st,cell,it.a,it.b),lvl=it.w+1;chain=Math.max(chain,lvl);dets++;
         det+=(SPBON[cell.sp]+5*area.length)*lvl;ev.sp=cell.sp;ev.area=area;ev.lvl=lvl;
         const idx=events.length;area.forEach(([a,b])=>q.push({a,b,par:idx,w:lvl}));}
@@ -459,25 +609,31 @@ function resolveG(st,start){
     if((ev.kind==='remove'||ev.kind==='break')&&st.ice[it.a][it.b]>0){st.ice[it.a][it.b]--;ev.ice=true;iceB++;}
     events.push(ev);
   }
+  // chests open after the keys of the same move were picked up
+  let opened=0;
+  chests.forEach(ev=>{if(st.keys>0){st.keys--;opened++;ev.kind='open';remove.push([ev.a,ev.b]);}else ev.kind='shut';events.push(ev);});
   remove.forEach(([a,b])=>{st.grid[a][b]=null;});
-  st.stats.stones+=broken;st.stats.unlocked+=unl;st.stats.ice+=iceB;st.stats.moss+=mossC;
-  return {events,detScore:det,broken,hits,unlocked:unl,iceBroken:iceB,moss:mossC,dets,chain};
+  Object.assign(st.stats,{stones:st.stats.stones+broken,unlocked:st.stats.unlocked+unl,ice:st.stats.ice+iceB,moss:st.stats.moss+mossC,
+    bombs:st.stats.bombs+bombsD,lava:st.stats.lava+lavaC,keys:st.stats.keys+keysG,chests:st.stats.chests+opened});
+  return {events,detScore:det+opened*80,broken,hits,unlocked:unl,iceBroken:iceB,moss:mossC,dets,chain,bombs:bombsD,lava:lavaC,keys:keysG,opened};
 }
 function applyMove(st,idx,r,c){
-  const p=st.tray[idx];
-  p.cells.forEach(([dr,dc],i)=>{st.grid[r+dr][c+dc]=p.bonus&&p.bonus.cell===i?{color:p.color,sp:p.bonus.sp}:{color:p.color};});
-  st.score+=p.cells.length;
+  const p=st.tray[idx],painted=[];
+  p.cells.forEach(([dr,dc],i)=>{const R=r+dr,K=c+dc;
+    st.grid[R][K]=p.bonus&&p.bonus.cell===i?{color:p.color,sp:p.bonus.sp}:p.key===i?{color:p.color,key:true}:{color:p.color};
+    if(st.paint[R][K]&&COLORS[st.paint[R][K]-1]===p.color){st.paint[R][K]=0;st.stats.paint++;painted.push([R,K]);}});
+  st.score+=p.cells.length+painted.length*25;
   const {rows,cols}=fullLines(st.grid),L=rows.length+cols.length;
-  const rep={p,r,c,L,rows,cols,colorLines:0,res:null,gain:p.cells.length,forged:null,clean:false,mult:1,refill:null,moss:null};
+  const rep={p,r,c,L,rows,cols,colorLines:0,res:null,gain:p.cells.length+painted.length*25,forged:null,clean:false,mult:1,refill:null,moss:null,painted,ticked:false};
   if(L){
-    const start=[];
+    const start=[];st.stats.lines+=L;
     const lines=[...rows.map(R=>Array.from({length:N},(_,k)=>[R,k])),...cols.map(K=>Array.from({length:N},(_,k)=>[k,K]))];
-    lines.forEach(cs=>{const xs=cs.map(([a,b])=>st.grid[a][b]);
-      if(xs.every(x=>x.color&&!x.stone&&x.color===xs[0].color))rep.colorLines++;
+    lines.forEach(cs=>{const xs=cs.map(([a,b])=>st.grid[a][b]).filter(x=>!x.hole);
+      if(xs.length&&xs.every(x=>x.color&&!x.stone&&x.color===xs[0].color))rep.colorLines++;
       cs.forEach(([a,b])=>start.push({a,b}));});
     const res=resolveG(st,start);rep.res=res;
     st.combo++;rep.mult=1+(st.combo-1)*.5;
-    rep.clean=st.grid.every(row=>row.every(x=>!x));
+    rep.clean=st.grid.every(row=>row.every(x=>!x||x.hole));
     const lineScore=10*L*(L+1)*Math.pow(2,rep.colorLines);
     const g=Math.round((lineScore+res.detScore+(rep.clean?500:0))*rep.mult)+res.broken*50;
     st.score+=g;rep.gain+=g;
@@ -486,8 +642,10 @@ function applyMove(st,idx,r,c){
       const cand=p.cells.map(([a,b])=>[r+a,c+b]).filter(([a,b])=>!st.grid[a][b]).sort((u,v)=>Math.hypot(u[0]-pc[0],u[1]-pc[1])-Math.hypot(v[0]-pc[0],v[1]-pc[1]));
       if(cand.length){const [a,b]=cand[0];st.grid[a][b]={color:p.color,sp,appear:1};st.stats.made[sp]++;rep.forged={a,b,sp};}}
   } else st.combo=0;
+  // time bombs tick after every move; one at 0 ends the level
+  for(let a=0;a<N;a++)for(let b=0;b<N;b++){const x=st.grid[a][b];if(x&&x.bomb){x.bomb--;rep.ticked=true;if(x.bomb<=0&&!st.boom)st.boom={r:a,c:b};}}
   st.tray[idx]=null;st.moves++;
-  if(st.tray.every(x=>!x))rep.refill=refillG(st);
+  if(!st.boom&&st.tray.every(x=>!x))rep.refill=refillG(st);
   if(st.lvl&&st.lvl.moss&&st.moves%st.lvl.moss===0)rep.moss=spreadMoss(st);
   return rep;
 }
@@ -503,10 +661,16 @@ function goalLeft(st,g){
   if(g.t==='moss')return countIf(st,x=>x&&x.moss);
   if(g.t==='make')return Math.max(0,g.target-st.stats.made[g.sp]);
   if(g.t==='score')return Math.max(0,g.target-st.score);
+  if(g.t==='bombs')return Math.max(0,g.target-st.stats.bombs);
+  if(g.t==='paint')return st.paint.reduce((s,row)=>s+row.filter(v=>v>0).length,0);
+  if(g.t==='chests')return countIf(st,x=>x&&x.chest);
+  if(g.t==='lava')return Math.max(0,g.target-st.stats.lava);
+  if(g.t==='lines')return Math.max(0,g.target-st.stats.lines);
   return 0;
 }
 const levelWon=st=>st.lvl.goals.every(g=>goalLeft(st,g)===0);
 const levelStars=(lv,score)=>score>=lv.stars[1]?3:score>=lv.stars[0]?2:1;
+const mapOf=n=>Math.floor((n-1)/MAPSIZE);
 /*CORE-END*/
 
 
@@ -551,10 +715,12 @@ function paintIcon(g,s,col,sp){
   }
   g.restore();
 }
-const SPR={}, SPRS={}, SPX={raket:{},bom:{},prisma:{}}, SPXS={raket:{},bom:{},prisma:{}}, WHITE=blockSprite('#ffffff',CS), GREY=blockSprite('#c4cad9',TS);
-COLORS.forEach(c=>{SPR[c]=blockSprite(c,CS);SPRS[c]=blockSprite(c,TS);
-  ['raket','bom','prisma'].forEach(sp=>{SPX[sp][c]=sprite(CS,g=>{paintBlock(g,CS,c);paintIcon(g,CS,c,sp)});SPXS[sp][c]=sprite(TS,g=>{paintBlock(g,TS,c);paintIcon(g,TS,c,sp)});});});
-const pieceSpr=(p,i,small,ok=true)=>!ok?GREY:p.bonus&&p.bonus.cell===i?(small?SPXS:SPX)[p.bonus.sp][p.color]:(small?SPRS:SPR)[p.color];
+const SPR={}, SPRS={}, SPX={raket:{},bom:{},prisma:{}}, SPXS={raket:{},bom:{},prisma:{}}, KEYX={}, KEYXS={}, WHITE=blockSprite('#ffffff',CS), GREY=blockSprite('#c4cad9',TS);
+// (re)draws all block sprites in the chosen theme
+function buildBlocks(){const st=curTheme().style;COLORS.forEach(c=>{SPR[c]=sprite(CS,g=>paintThemed(g,CS,c,st));SPRS[c]=sprite(TS,g=>paintThemed(g,TS,c,st));
+  ['raket','bom','prisma'].forEach(sp=>{SPX[sp][c]=sprite(CS,g=>{paintThemed(g,CS,c,st);paintIcon(g,CS,dcol(c),sp)});SPXS[sp][c]=sprite(TS,g=>{paintThemed(g,TS,c,st);paintIcon(g,TS,dcol(c),sp)});});
+  KEYX[c]=sprite(CS,g=>{paintThemed(g,CS,c,st);drawKey(g,CS,.95)});KEYXS[c]=sprite(TS,g=>{paintThemed(g,TS,c,st);drawKey(g,TS,.95)});});buildPaint();}
+const pieceSpr=(p,i,small,ok=true)=>!ok?GREY:p.bonus&&p.bonus.cell===i?(small?SPXS:SPX)[p.bonus.sp][p.color]:p.key===i?(small?KEYXS:KEYX)[p.color]:(small?SPRS:SPR)[p.color];
 function stoneSprite(n,max){return sprite(CS,(g,s)=>{
   g.fillStyle='#2f2c45'; rr(g,1,1.5,s-2,s-2.5,s*.2); g.fill();
   const lg=g.createLinearGradient(0,0,0,s); lg.addColorStop(0,'#b3afcc'); lg.addColorStop(1,'#6b6788');
@@ -585,7 +751,89 @@ const LOCK=sprite(CS,(g,s)=>{g.lineCap='round';
 const MOSS=sprite(CS,(g,s)=>{g.fillStyle='#24813f';rr(g,1.5,2,s-3,s-4,10);g.fill();const rnd=mulberry32(11);
   for(let i=0;i<20;i++){g.fillStyle=i%3?'#45b865':'#7fdc93';g.beginPath();g.arc(5+rnd()*(s-10),5+rnd()*(s-11),2.6+rnd()*3.6,0,7);g.fill();}
   g.fillStyle='#e9f9ec';[[.3,.35],[.66,.6],[.42,.72]].forEach(([a,b])=>{g.beginPath();g.arc(s*a,s*b,1.6,0,7);g.fill();});});
-const cellSprite=x=>x.stone?STONE[x.stone+'/'+x.max]:x.moss?MOSS:x.sp?SPX[x.sp][x.color]:SPR[x.color];
+/* ---------- block themes (decision 19): unlocked with campaign stars ---------- */
+const THEMES=[
+ {id:'klassiek',name:'Klassiek',need:0,style:'gloss',col:COLORS},
+ {id:'snoep',name:'Snoepkleuren',need:30,style:'stripe',col:['#ff3d7f','#ff7b1c','#ffd11a','#2fe07a','#1fb8ff','#b45cff']},
+ {id:'pastel',name:'Pastel',need:90,style:'matte',col:['#f7a1b5','#f8c08f','#f6e08e','#a9e5c0','#a3d6f5','#c9b5f5']},
+ {id:'neon',name:'Neon',need:180,style:'neon',col:['#ff2e88','#ff8a00','#f5ff3b','#31ff9c','#27e2ff','#b84dff']},
+ {id:'hout',name:'Hout',need:300,style:'wood',col:['#c0563f','#d98a3a','#e0bc5e','#7fa35a','#5a8fb0','#8a6aa8']},
+ {id:'edelsteen',name:'Edelsteen',need:450,style:'gem',col:['#e8235a','#f26b1d','#f2c40f','#16b86a','#1883e6','#8a3ee8']},
+ {id:'goud',name:'Goud',need:580,style:'gold',col:['#e8235a','#f26b1d','#f2c40f','#16b86a','#1883e6','#8a3ee8']}];
+let themeId=store.get('blockers-theme')||'klassiek';
+const curTheme=()=>THEMES.find(t=>t.id===themeId)||THEMES[0];
+// the on-screen colour of a block colour in the chosen theme
+const dcol=c=>{const i=COLORS.indexOf(c);return i<0?c:curTheme().col[i];};
+function paintThemed(g,s,base,style){
+  const col=dcol(base);
+  if(style==='gloss')return paintBlock(g,s,col);
+  if(style==='matte'){g.fillStyle=mix(col,-.25);rr(g,1,1.5,s-2,s-2.5,s*.26);g.fill();g.fillStyle=col;rr(g,2,2,s-4,s-6,s*.24);g.fill();
+    g.fillStyle='rgba(255,255,255,.35)';rr(g,s*.16,s*.12,s*.68,s*.2,s*.1);g.fill();return;}
+  if(style==='stripe'){paintBlock(g,s,col);g.save();rr(g,2,2,s-4,s-6,s*.2);g.clip();g.strokeStyle='rgba(255,255,255,.38)';g.lineWidth=s*.12;
+    for(let k=-s;k<s*2;k+=s*.36){g.beginPath();g.moveTo(k,0);g.lineTo(k+s,s);g.stroke();}g.restore();return;}
+  if(style==='neon'){g.fillStyle='#1c1838';rr(g,1.5,1.5,s-3,s-3,s*.2);g.fill();g.save();g.shadowColor=col;g.shadowBlur=s*.25;
+    g.strokeStyle=col;g.lineWidth=s*.1;rr(g,s*.14,s*.14,s*.72,s*.72,s*.16);g.stroke();g.restore();
+    g.fillStyle=mix(col,.6);rr(g,s*.3,s*.3,s*.4,s*.12,s*.06);g.fill();return;}
+  if(style==='wood'){g.fillStyle=mix(col,-.45);rr(g,1,1.5,s-2,s-2.5,s*.14);g.fill();
+    const lg=g.createLinearGradient(0,0,s,0);lg.addColorStop(0,mix(col,-.12));lg.addColorStop(.5,mix(col,.1));lg.addColorStop(1,mix(col,-.15));
+    g.fillStyle=lg;rr(g,2,2,s-4,s-6,s*.12);g.fill();g.strokeStyle=mix(col,-.35);g.lineWidth=1.2;
+    for(let k=0;k<4;k++){g.beginPath();const y=s*(.2+k*.18);g.moveTo(4,y);g.bezierCurveTo(s*.35,y-3,s*.65,y+3,s-4,y-1);g.stroke();}return;}
+  if(style==='gem'){g.fillStyle=mix(col,-.5);rr(g,1,1.5,s-2,s-2.5,s*.18);g.fill();
+    const c1=mix(col,.35),c2=col,c3=mix(col,-.2),c4=mix(col,-.38),m=s*.22,w=s-2,h=s-3.5;
+    const quad=(pts,f)=>{g.fillStyle=f;g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill();};
+    quad([[2,2],[w,2],[w-m,2+m],[2+m,2+m]],c1);quad([[w,2],[w,h],[w-m,h-m],[w-m,2+m]],c3);
+    quad([[2,h],[w,h],[w-m,h-m],[2+m,h-m]],c4);quad([[2,2],[2+m,2+m],[2+m,h-m],[2,h]],c2);
+    quad([[2+m,2+m],[w-m,2+m],[w-m,h-m],[2+m,h-m]],c2);g.fillStyle='rgba(255,255,255,.55)';g.beginPath();g.moveTo(2+m+2,2+m+2);g.lineTo(s*.55,2+m+2);g.lineTo(2+m+2,s*.55);g.closePath();g.fill();return;}
+  if(style==='gold'){const lg=g.createLinearGradient(0,0,s,s);lg.addColorStop(0,'#fff1a8');lg.addColorStop(.45,'#e9b52c');lg.addColorStop(1,'#a8700c');
+    g.fillStyle='#7a4f05';rr(g,1,1.5,s-2,s-2.5,s*.2);g.fill();g.fillStyle=lg;rr(g,2,2,s-4,s-6,s*.18);g.fill();
+    g.fillStyle=mix(col,-.25);g.beginPath();g.arc(s/2,s/2-1,s*.22,0,7);g.fill();g.fillStyle=col;g.beginPath();g.arc(s/2,s/2-2,s*.17,0,7);g.fill();
+    g.fillStyle='rgba(255,255,255,.75)';g.beginPath();g.arc(s*.44,s*.4,s*.05,0,7);g.fill();return;}
+  paintBlock(g,s,col);
+}
+/* ---------- new obstacles ---------- */
+const WATER=sprite(CS,(g,s)=>{const lg=g.createLinearGradient(0,0,0,s);lg.addColorStop(0,'#7fd3e8');lg.addColorStop(1,'#3aa6c9');
+  g.fillStyle=lg;rr(g,1,1,s-2,s-2,6);g.fill();g.strokeStyle='rgba(255,255,255,.7)';g.lineWidth=1.8;g.lineCap='round';
+  [[.3,.35],[.62,.62],[.28,.78]].forEach(([a,b])=>{g.beginPath();g.moveTo(s*(a-.14),s*b);g.quadraticCurveTo(s*(a-.07),s*(b-.07),s*a,s*b);g.quadraticCurveTo(s*(a+.07),s*(b+.07),s*(a+.14),s*b);g.stroke();});});
+const CHEST=sprite(CS,(g,s)=>{g.fillStyle='#5b3410';rr(g,2,4,s-4,s-7,6);g.fill();
+  const lg=g.createLinearGradient(0,0,0,s);lg.addColorStop(0,'#c9813a');lg.addColorStop(1,'#8a4f1c');g.fillStyle=lg;rr(g,3.5,5.5,s-7,s-10,5);g.fill();
+  g.fillStyle='#7a4416';g.fillRect(3.5,s*.42,s-7,2.5);g.fillStyle='#ffc61a';g.fillRect(s*.2,5.5,3,s-10);g.fillRect(s*.8-3,5.5,3,s-10);
+  g.strokeStyle='#7a5300';g.lineWidth=1.4;rr(g,s*.4,s*.36,s*.2,s*.24,2);g.fillStyle='#ffd84d';g.fill();g.stroke();
+  g.fillStyle='#5b3410';g.beginPath();g.arc(s/2,s*.47,1.8,0,7);g.fill();});
+function drawKey(g,s,k=1){g.save();g.translate(s/2,s/2);g.scale(k,k);g.rotate(-.7);g.strokeStyle='#6b4a00';g.fillStyle='#ffd23f';g.lineWidth=1.6;
+  g.beginPath();g.arc(-s*.16,0,s*.13,0,7);g.fill();g.stroke();g.fillStyle='#6b4a00';g.beginPath();g.arc(-s*.16,0,s*.05,0,7);g.fill();
+  g.fillStyle='#ffd23f';g.fillRect(-s*.04,-s*.045,s*.34,s*.09);g.strokeRect(-s*.04,-s*.045,s*.34,s*.09);
+  g.fillRect(s*.18,s*.04,s*.06,s*.09);g.strokeRect(s*.18,s*.04,s*.06,s*.09);g.fillRect(s*.06,s*.04,s*.06,s*.07);g.strokeRect(s*.06,s*.04,s*.06,s*.07);g.restore();}
+const KEYONLY=sprite(CS,(g,s)=>drawKey(g,s,1.15));
+const LAVA=sprite(CS,(g,s)=>{g.fillStyle='#6b1505';rr(g,1,1.5,s-2,s-2.5,s*.2);g.fill();
+  const lg=g.createLinearGradient(0,0,0,s);lg.addColorStop(0,'#ffcf3f');lg.addColorStop(.45,'#ff6a1a');lg.addColorStop(1,'#c2200a');
+  g.fillStyle=lg;rr(g,2,2,s-4,s-6,s*.18);g.fill();const rnd=mulberry32(5);g.fillStyle='rgba(120,20,5,.45)';
+  for(let i=0;i<6;i++){g.beginPath();g.ellipse(5+rnd()*(s-10),6+rnd()*(s-14),2+rnd()*3,1.4+rnd()*2,rnd()*3,0,7);g.fill();}
+  g.fillStyle='rgba(255,245,180,.7)';rr(g,s*.14,s*.1,s*.5,s*.12,s*.06);g.fill();});
+const BOMBICON=sprite(CS,(g,s)=>{g.fillStyle='#1d1838';g.beginPath();g.arc(s*.46,s*.56,s*.3,0,7);g.fill();
+  g.fillStyle='#fff';g.font=`${s*.3}px Bungee, "Arial Black", sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText('9',s*.46,s*.57);
+  g.strokeStyle='#1d1838';g.lineWidth=3;g.beginPath();g.moveTo(s*.62,s*.3);g.quadraticCurveTo(s*.72,s*.12,s*.84,s*.16);g.stroke();
+  g.fillStyle='#ffb020';g.beginPath();g.arc(s*.84,s*.16,s*.07,0,7);g.fill();});
+const LINEICON=sprite(CS,(g,s)=>{for(let i=0;i<4;i++){g.fillStyle=['#ff5f7e','#ffd84d','#4fdc8a','#3fc6ff'][i];rr(g,2+i*(s-4)/4,s*.36,(s-4)/4-1.5,s*.28,3);g.fill();}
+  g.strokeStyle='#ff9a3d';g.lineWidth=2.4;g.lineCap='round';g.beginPath();g.moveTo(3,s*.24);g.lineTo(s-3,s*.24);g.moveTo(3,s*.76);g.lineTo(s-3,s*.76);g.stroke();});
+let PAINT={};
+function buildPaint(){PAINT={};COLORS.forEach((c,i)=>{const col=dcol(c);PAINT[i+1]=sprite(CS,(g,s)=>{
+  g.fillStyle=mix(col,.62);rr(g,3,3,s-6,s-6,8);g.fill();g.save();rr(g,3,3,s-6,s-6,8);g.clip();g.strokeStyle=mix(col,.3);g.lineWidth=3;
+  for(let k=-s;k<s*2;k+=7){g.beginPath();g.moveTo(k,0);g.lineTo(k+s,s);g.stroke();}g.restore();
+  g.setLineDash([4,3]);g.strokeStyle=mix(col,-.15);g.lineWidth=2;rr(g,3,3,s-6,s-6,8);g.stroke();g.setLineDash([]);
+  g.fillStyle=col;g.beginPath();g.arc(s/2,s/2,s*.12,0,7);g.fill();});});}
+// the small mark of a paint tile under a block of another colour
+function paintMark(x,y,v){const col=dcol(COLORS[v-1]);ctx.fillStyle=col;ctx.strokeStyle='#fff';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(x+CS-4,y+4);ctx.lineTo(x+CS-4,y+15);ctx.lineTo(x+CS-15,y+4);ctx.closePath();ctx.fill();ctx.stroke();}
+// a time bomb: the block with its counter, red and pulsing when it is almost at 0
+function drawBomb(x,y,cell,T,sc){
+  drawSpr(SPR[cell.color],x,y,CS,sc);const hot=cell.bomb<=3,r=CS*.27*(hot?1+.08*Math.sin(T/90):1);
+  ctx.fillStyle=hot?'#e0203a':'#1d1838';ctx.beginPath();ctx.arc(x+CS/2,y+CS/2+1,r,0,7);ctx.fill();
+  ctx.strokeStyle='#fff';ctx.lineWidth=1.6;ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font=`${CS*.32}px Bungee, "Arial Black", sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(cell.bomb,x+CS/2,y+CS/2+2);
+}
+
+buildBlocks();
+const cellSprite=x=>x.hole?WATER:x.chest?CHEST:x.lava?LAVA:x.stone?STONE[x.stone+'/'+x.max]:x.moss?MOSS:x.sp?SPX[x.sp][x.color]:x.key?KEYX[x.color]:SPR[x.color];
 
 /* ================= sound & haptics ================= */
 let AC=null, muted=store.get('blockers-mute')==='1';
@@ -615,16 +863,18 @@ const sfx={
   over(){[0,-3,-7,-12].forEach((s,i)=>tone(330*Math.pow(2,s/12),.3,'triangle',.12,i*.14))}
 };
 const at=(t,fn)=>setTimeout(fn,Math.max(0,t-now()));
-const buzz=ms=>{try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
+let vibrate=store.get('blockers-vib')!=='0';
+const buzz=ms=>{if(!vibrate)return;try{navigator.vibrate&&navigator.vibrate(ms)}catch(e){}};
 const setMuteIcon=()=>{$('mute').textContent=muted?'🔇':'🔊'};setMuteIcon();
 $('mute').onclick=()=>{audio();muted=!muted;store.set('blockers-mute',muted?'1':'0');setMuteIcon();if(!muted)sfx.pick()};
 
 /* ================= screens ================= */
 let screen='menu';
 function show(name){screen=name;['menu','game','mp','lb','camp'].forEach(s=>$('s-'+s).hidden=s!==name);
+  if(name!=='camp'&&!(name==='game'&&S&&S.mode==='camp'))setMapTheme(null);
   if(name==='camp')renderCamp();
   if(name==='menu')renderMenu(); if(name==='mp')renderMP(); if(name==='lb')openLB(lbTab); else closeLB();}
-document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>show('menu'));
+document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{if(screen==='camp'&&campMap!=null){campMap=null;renderCamp();}else show('menu');});
 
 /* ================= game state ================= */
 let S=null, games=0, drag=null, parts=[], pops=[], dying=[], effects=[], shake=0, flash=0, disp=0;
@@ -639,18 +889,23 @@ function newGame(opt){
     movesLeft:opt.lvl?opt.lvl.moves:DUEL_MOVES,prog:[],cont:false,cont2:false,over:false,lock:false,started:Date.now(),
     best:opt.mode==='classic'?Math.max(localBest(),NET.player?.best||0):0,recordHit:false});
   S.bestStart=S.best;S.shown=0;disp=0;parts=[];pops=[];dying=[];effects=[];shake=0;flash=0;
-  $('score').textContent='0';$('score').classList.remove('bump');
+  $('score').textContent='0';$('score').classList.remove('bump');$('hint').classList.remove('tut');
   const T=now();for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(S.grid[r][c])S.born[r][c]=T+(r+c)*35;
   refillFx(refillG(S));
   if(S.mode==='camp'&&trayStuck(S))rerollTray(S);
   hud();show('game');
   $('hint').textContent=S.mode==='duel'?tx('Exact hetzelfde spel: jullie krijgen dezelfde blokken, bonussen en stenen. Na 20 zetten volgt de finale.')
-    :S.mode==='camp'?tx(WORLDS[S.lvl.w].tip)
+    :S.mode==='camp'?tx(MAPS[S.lvl.m].tip)
     :tx('Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.');
 }
 function refillFx(out){
   S.trayT=now();
   if(!out)return;
+  if(out.lava&&out.lava.rise){const T=now();for(let r=0;r<N;r++)for(let c=0;c<N;c++)S.born[r][c]=T+(N-r)*30;
+    if(!reduced)shake=12;sfx.drop();buzz(50);pop(tx('Lava stijgt!'),W/2,PAD+BOARD-10,'info','#ff5a36');
+    if(out.lava.lost)pop(tx('{n} blokken van het bord geduwd',{n:out.lava.lost}),W/2,PAD+20,'info','#8f99b0',null,T+300);}
+  if(out.bomb){const {r,c}=out.bomb;S.born[r][c]=now();sfx.drop();pop(tx('Tijdbom!'),PAD+c*CS+CS/2,PAD+r*CS-6,'info','#e0203a');}
+  if(out.key>=0)pop(tx('Sleutel!'),slotX(out.key),TRAY_Y-4,'info','#c9932b',null,now()+400);
   if(out.drop){const {r,c}=out.drop;S.born[r][c]=now();if(!reduced)shake=16;sfx.drop();buzz(60);
     pop(tx('Steen!'),PAD+c*CS+CS/2,PAD+r*CS-6,'info','#8f99b0');}
   if(out.bonus>=0)pop(tx('Bonus: {x}!',{x:tx(SPNAME[S.tray[out.bonus].bonus.sp])}),slotX(out.bonus),TRAY_Y-4,'info','#e07c00',null,now()+250);
@@ -659,7 +914,7 @@ function pop(t,x,y,kind,col,size,t0){pops.push({t,x:kind==='callout'?x:clamp(x,8
 
 /* turn engine events into timed animations; returns when the last one ends */
 function animateEvents(res,T,cx,cy){
-  const times=[];let end=T,krak=false;
+  const times=[],said={};let end=T,krak=false;
   res.events.forEach(ev=>{
     const x=PAD+ev.b*CS,y=PAD+ev.a*CS;let ox,oy,tb;
     if(ev.par<0){[ox,oy]=ev.o?cellXY(ev.a,ev.b):[cx,cy];tb=T+(ev.d||0);}
@@ -669,7 +924,11 @@ function animateEvents(res,T,cx,cy){
     if(ev.kind==='hit')S.born[ev.a][ev.b]=t0;
     else if(ev.kind==='break'){dying.push({x,y,spr:STONE['1/'+cell.max],t0,stone:true});if(!krak){krak=true;pop(tx('Krak!'),x+CS/2,y,'info','#8f99b0',null,t0);}}
     else if(ev.kind==='unlock'){S.born[ev.a][ev.b]=t0;dying.push({x,y,spr:LOCK,t0,col:'#8f99b0'});}
-    else dying.push({x,y,spr:cellSprite(cell),col:cell.moss?'#3fae5f':cell.color,t0});
+    else if(ev.kind==='open'){dying.push({x,y,spr:CHEST,t0,col:'#ffc61a'});if(!said.open){said.open=1;pop(tx('Kist open!'),x+CS/2,y,'info','#c9932b',null,t0);at(t0,sfx.make);}}
+    else if(ev.kind==='shut'){S.born[ev.a][ev.b]=t0;if(!said.shut){said.shut=1;pop(tx('Sleutel nodig!'),x+CS/2,y,'info','#8f99b0',null,t0);}}
+    else{dying.push({x,y,spr:cellSprite(cell),col:cell.moss?'#3fae5f':cell.lava?'#ff6a1a':cell.color,t0});
+      if(cell.key&&!said.key){said.key=1;pop(tx('Sleutel!'),x+CS/2,y,'info','#c9932b',null,t0);}
+      if(cell.bomb&&!said.bomb){said.bomb=1;pop(tx('Ontmanteld!'),x+CS/2,y,'info','#e07c00',null,t0);}}
     if(ev.ice)dying.push({x,y,spr:ICE,t0:t0+40,col:'#8fd3ff'});
     if(ev.sp){effects.push({type:ev.sp,r:ev.a,c:ev.b,color:cell.color,t0,area:ev.area});
       if(ev.lvl>=2)pop(tx('Ketting ×{n}',{n:ev.lvl}),x+CS/2,y+24,'info','#e07c00',null,t0+160);
@@ -716,12 +975,17 @@ function place(idx,r,c){
   S.prog.push(S.score);
   if(S.mode!=='classic')S.movesLeft--;
   if(rep.refill)refillFx(rep.refill);
+  if(rep.painted&&rep.painted.length){const [a,b]=rep.painted[0];pop(tx('Geschilderd!'),PAD+b*CS+CS/2,PAD+a*CS-6,'info',mix(dcol(p.color),-.2));sfx.make();}
   if(rep.moss&&rep.moss.length){const t=Math.max(now(),endT-150);rep.moss.forEach(([a,b])=>S.born[a][b]=t);
     const [a,b]=rep.moss[0];pop(tx('Mos groeit!'),PAD+b*CS+CS/2,PAD+a*CS-6,'info','#2f9b55',null,t);at(t,sfx.grow);}
   checkRecord();hud();
+  if(S.tut)tutStep(rep);
   const wait=Math.max(450,endT-now()+250);
   if(S.mode==='camp'){
     if(levelWon(S)){S.lock=true;setTimeout(winLevel,wait);}
+    else if(S.boom){S.lock=true;const {r,c}=S.boom;setTimeout(()=>{if(!reduced)shake=22;flash=.6;sfx.bom();buzz([80,40,120]);
+      pop(tx('BOEM!'),PAD+c*CS+CS/2,PAD+r*CS,'callout');setTimeout(()=>loseLevel('bomb'),900);},wait);}
+    else if(S.overflow){S.lock=true;setTimeout(()=>{if(!reduced)shake=18;flash=.5;sfx.drop();setTimeout(()=>loseLevel('lava'),700);},wait);}
     else if(S.movesLeft<=0){S.lock=true;setTimeout(()=>loseLevel('moves'),wait);}
     else if(trayStuck(S)){S.lock=true;setTimeout(()=>loseLevel('space'),wait+300);}
   }
@@ -762,24 +1026,64 @@ function hud(){
   renderGoals();
 }
 
-/* ================= campaign ================= */
-const CAMPKEY='blockers-camp';
-let CAMP=(()=>{try{const c=JSON.parse(store.get(CAMPKEY)||'{}');return {s:c.s||{},b:c.b||{}};}catch(e){return {s:{},b:{}};}})();
+/* ================= campaign: 10 maps of 20 levels ================= */
+// New key: the stars of the old 75-level campaign are not carried over (decision 16).
+const CAMPKEY='blockers-camp2';
+try{localStorage.removeItem('blockers-camp');}catch(e){}
+let CAMP=(()=>{try{const c=JSON.parse(store.get(CAMPKEY)||'{}');return {s:c.s||{},b:c.b||{},st:c.st||{},md:c.md||{}};}catch(e){return {s:{},b:{},st:{},md:{}};}})();
+const saveCampLocal=()=>store.set(CAMPKEY,JSON.stringify(CAMP));
 const campStars=()=>Object.values(CAMP.s).reduce((a,b)=>a+b,0);
-const campUnlocked=n=>n===1||(CAMP.s[n-1]||0)>0;
-const campNext=()=>{for(let n=1;n<=LEVELS;n++)if(!CAMP.s[n])return n;return LEVELS;};
+const mapFirst=m=>m*MAPSIZE+1, mapBoss=m=>(m+1)*MAPSIZE;
+const mapStars=m=>{let t=0;for(let n=mapFirst(m);n<=mapBoss(m);n++)t+=CAMP.s[n]||0;return t;};
+// a map opens once the boss (level 20) of the map before it is won (decision 15)
+const mapOpen=m=>m===0||(CAMP.s[mapBoss(m-1)]||0)>0;
+const campUnlocked=n=>{const m=mapOf(n);if(!mapOpen(m))return false;return n===mapFirst(m)||(CAMP.s[n-1]||0)>0;};
+const campNext=()=>{for(let n=1;n<=LEVELS;n++)if(!CAMP.s[n]&&campUnlocked(n))return n;return LEVELS;};
 function campSave(n,stars,score){
   let ch=false;
   if(stars>(CAMP.s[n]||0)){CAMP.s[n]=stars;ch=true;}
   if(score>(CAMP.b[n]||0)){CAMP.b[n]=score;ch=true;}
-  if(ch){store.set(CAMPKEY,JSON.stringify(CAMP));pushCamp(n);}
+  if(ch){saveCampLocal();pushCamp(n);}
 }
 function mergeCamp(remote){
   if(!remote)return false;let more=false;
   Object.entries(remote).forEach(([n,s])=>{if(s>(CAMP.s[n]||0))CAMP.s[n]=s;});
   Object.entries(CAMP.s).forEach(([n,s])=>{if(s>(remote[n]||0))more=true;});
-  store.set(CAMPKEY,JSON.stringify(CAMP));return more;
+  saveCampLocal();return more;
 }
+/* ---------- map goals and medals (decision 17) ---------- */
+// silver: the obstacle of the map; stat = key in the lifetime stats of that map
+const SILVER=[{stat:'stones',n:150,t:'Breek {n} stenen'},{stat:'ice',n:120,t:'Breek {n} ijsvakjes'},{stat:'unlocked',n:80,t:'Bevrijd {n} geketende blokken'},
+  {stat:'moss',n:120,t:'Ruim {n} mosvakjes op'},{stat:'bombs',n:40,t:'Ontmantel {n} tijdbommen'},{stat:'lines',n:150,t:'Wis {n} lijnen op de eilanden'},
+  {stat:'paint',n:100,t:'Schilder {n} vakjes'},{stat:'chests',n:40,t:'Open {n} kisten'},{stat:'lava',n:300,t:'Wis {n} lavablokken'},{stat:'won',n:20,t:'Win alle {n} levels'}];
+const BRONZE_STARS=45;
+function mapGoals(m){
+  const st=CAMP.st[m]||{},won=Array.from({length:MAPSIZE},(_,i)=>CAMP.s[mapFirst(m)+i]?1:0).reduce((a,b)=>a+b,0),sv=SILVER[m];
+  const have=sv.stat==='won'?won:(st[sv.stat]||0);
+  return [{medal:'b',text:tx('Verdien {n} sterren op deze kaart',{n:BRONZE_STARS}),have:mapStars(m),need:BRONZE_STARS},
+    {medal:'s',text:tx(sv.t,{n:sv.n}),have,need:sv.n},
+    {medal:'g',text:tx('Haal 3 sterren op de eindbaas'),have:(CAMP.s[mapBoss(m)]||0)>=3?1:0,need:1}];
+}
+const MEDAL_EMOJI={b:'🥉',s:'🥈',g:'🥇'};
+const medalCount=()=>Object.values(CAMP.md).reduce((a,v)=>a+v.length,0);
+// adds the stats of a finished level to its map and hands out new medals; returns the new ones
+function campProgress(m,stats){
+  const st=CAMP.st[m]||(CAMP.st[m]={});
+  ['stones','ice','unlocked','moss','bombs','lines','paint','chests','lava'].forEach(k=>{st[k]=(st[k]||0)+(stats[k]||0);});
+  const had=CAMP.md[m+1]||'',got=mapGoals(m).filter(g=>g.have>=g.need).map(g=>g.medal).join('');
+  const fresh=[...got].filter(x=>!had.includes(x));
+  if(fresh.length){CAMP.md[m+1]=['b','s','g'].filter(x=>(had+got).includes(x)).join('');pushMedals();}
+  saveCampLocal();return fresh;
+}
+// the part of the level's stats not counted yet (a level can end, be rescued and end again)
+function freshStats(){const d={};Object.keys(S.stats).forEach(k=>{if(typeof S.stats[k]==='number')d[k]=S.stats[k]-((S.counted||{})[k]||0);});S.counted={...S.stats};return d;}
+function pushMedals(){if(online())API.call('gq_save_medals',{p_medals:CAMP.md}).catch(()=>{});}
+function mergeMedals(remote){
+  if(!remote)return;let ch=false;
+  Object.entries(remote).forEach(([k,v])=>{const cur=CAMP.md[k]||'',all=['b','s','g'].filter(x=>(cur+v).includes(x)).join('');if(all!==cur){CAMP.md[k]=all;ch=true;}});
+  if(ch)saveCampLocal();
+}
+/* ---------- goals of a level ---------- */
 function goalText(g,lv){
   const cnt=t=>lv.cells.filter(e=>e.t===t).length;
   if(g.t==='stones')return tx(g.target===1?'Breek {n} steen':'Breek {n} stenen',{n:g.target});
@@ -788,6 +1092,11 @@ function goalText(g,lv){
   if(g.t==='moss')return tx('Ruim al het mos op');
   if(g.t==='make')return tx('Maak {n} {x}',{n:g.target,x:tx(g.target>1?SPPLUR[g.sp]:SPNAME[g.sp])});
   if(g.t==='score')return tx('Haal {n} punten',{n:g.target});
+  if(g.t==='bombs')return tx(g.target===1?'Ontmantel {n} tijdbom':'Ontmantel {n} tijdbommen',{n:g.target});
+  if(g.t==='paint')return tx('Schilder alle {n} gekleurde vakjes',{n:lv.paint.length});
+  if(g.t==='chests')return tx('Open alle {n} kisten',{n:cnt('chest')});
+  if(g.t==='lava')return tx('Wis {n} lavablokken',{n:g.target});
+  if(g.t==='lines')return tx('Wis {n} lijnen',{n:g.target});
   return '';
 }
 function goalIcon(g,size=26){
@@ -798,53 +1107,97 @@ function goalIcon(g,size=26){
   else if(g.t==='locks'){x.drawImage(SPR['#a77bff'],0,0,CS,CS);x.drawImage(LOCK,0,0,CS,CS);}
   else if(g.t==='moss')x.drawImage(MOSS,0,0,CS,CS);
   else if(g.t==='make')x.drawImage(SPX[g.sp]['#3fc6ff'],0,0,CS,CS);
+  else if(g.t==='bombs')x.drawImage(BOMBICON,0,0,CS,CS);
+  else if(g.t==='paint')x.drawImage(PAINT[5],0,0,CS,CS);
+  else if(g.t==='chests')x.drawImage(CHEST,0,0,CS,CS);
+  else if(g.t==='lava')x.drawImage(LAVA,0,0,CS,CS);
+  else if(g.t==='lines')x.drawImage(LINEICON,0,0,CS,CS);
   else{x.fillStyle='#ffb020';x.strokeStyle='#c46a00';x.lineWidth=2;x.beginPath();
     for(let i=0;i<10;i++){const a=-Math.PI/2+i*Math.PI/5,r=i%2?7:17;x.lineTo(20+Math.cos(a)*r,21+Math.sin(a)*r);}x.closePath();x.fill();x.stroke();}
   return c;
 }
+const OBICON={stones:{t:'stones'},ice:{t:'ice'},locks:{t:'locks'},moss:{t:'moss'},bombs:{t:'bombs'},holes:{t:'holes'},paint:{t:'paint'},chests:{t:'chests'},lava:{t:'lava'},mix:{t:'score'}};
+function obIcon(m,size){const ob=MAPS[m].ob;if(ob==='holes'){const c=el('canvas');c.width=c.height=size*2;c.style.width=c.style.height=size+'px';
+  const x=c.getContext('2d');x.scale(size*2/CS,size*2/CS);x.drawImage(WATER,0,0,CS,CS);return c;}return goalIcon(OBICON[ob],size);}
+// moves until the next lava row, for the counter above the board
+function lavaIn(st){const L=st.lvl&&st.lvl.lava;if(!L)return 0;const placed=3-st.tray.filter(Boolean).length,toGo=L-((st.rounds-1)%L);return Math.max(1,toGo*3-placed);}
 function renderGoals(){
   const box=$('goals');
   if(!S||S.mode!=='camp'){box.hidden=true;return;}
   box.hidden=false;
-  box.replaceChildren(...S.lvl.goals.map(g=>{const left=goalLeft(S,g),d=el('div','goal'+(left===0?' done':''));
-    d.title=goalText(g,S.lvl);d.append(goalIcon(g),el('b',null,left===0?'✓':String(left)));return d;}));
+  const chips=S.lvl.goals.map(g=>{const left=goalLeft(S,g),d=el('div','goal'+(left===0?' done':''));
+    d.title=goalText(g,S.lvl);d.append(goalIcon(g),el('b',null,left===0?'✓':String(left)));return d;});
+  if(S.lvl.lava){const n=lavaIn(S),d=el('div','goal warn'+(n<=3?' hot':''));d.title=tx('Zetten tot de volgende lavarij');
+    d.append(goalIcon({t:'lava'}),el('b',null,'↑'+n));chips.push(d);}
+  if(S.lvl.keys){const d=el('div','goal');d.title=tx('Sleutels');d.append(keyIcon(26),el('b',null,String(S.keys)));chips.push(d);}
+  box.replaceChildren(...chips);
 }
+function keyIcon(size){const c=el('canvas');c.width=c.height=size*2;c.style.width=c.style.height=size+'px';const x=c.getContext('2d');x.scale(size*2/CS,size*2/CS);x.drawImage(KEYONLY,0,0,CS,CS);return c;}
 function starRow(n,cls){const s=el('div',cls);for(let i=0;i<3;i++)s.append(el('span',i<n?'on':null,'★'));return s;}
 const NODE_X=[0,58,88,58,0,-58,-88,-58];
+let campMap=null; // null = overview of the 10 maps, otherwise the open map
+function setMapTheme(m){const st=document.body.style;
+  if(m==null){st.removeProperty('--glowA');st.removeProperty('--glowB');return;}
+  st.setProperty('--glowA',MAPS[m].bg[0]);st.setProperty('--glowB',MAPS[m].bg[1]);}
 function renderCamp(){
-  const cur=campNext(),nodes=[];
   $('camp-stars').textContent='★ '+campStars()+' / '+LEVELS*3;
-  WORLDS.forEach((wd,w)=>{
-    const band=el('div','wband');band.style.setProperty('--wc',wd.color);
-    const first=w*15+1,got=Array.from({length:15},(_,i)=>CAMP.s[first+i]||0).reduce((a,b)=>a+b,0);
-    band.append(el('b',null,(w+1)+'. '+tx(wd.name)),el('span',null,campUnlocked(first)?'★ '+got+' / 45 · '+tx(wd.tip):tx('Haal level {n} om deze wereld te openen.',{n:first-1})));
-    const path=el('div','path');
-    for(let i=0;i<15;i++){
-      const n=first+i,locked=!campUnlocked(n),b=el('button','node'+(locked?' locked':'')+(n===cur&&!locked?' cur':''));
-      b.id='lv-'+n;b.style.setProperty('--wc',wd.color);b.style.setProperty('--x',NODE_X[i%8]+'px');
-      b.setAttribute('aria-label',locked?tx('Level {n}, vergrendeld',{n}):tx('Level {n}, {s} sterren',{n,s:CAMP.s[n]||0}));
-      b.append(el('span','num',String(n)));if(locked)b.append(el('span','lk','🔒'));
-      if(!locked)b.append(starRow(CAMP.s[n]||0,'stars'));
-      if(i%5===4)b.classList.add('boss');
-      b.onclick=()=>{if(!locked)levelIntro(n);};
-      path.append(b);
-    }
-    nodes.push(band,path);
-  });
+  const head=$('s-camp').querySelector('h2.sec');
+  if(campMap==null){
+    setMapTheme(null);head.textContent=tx('Campagne');
+    const nodes=[el('p','muted',tx('10 kaarten met elk 20 levels. Win de eindbaas om de volgende kaart te openen.'))];
+    MAPS.forEach((mp,m)=>{
+      const open=mapOpen(m),card=el('button','mapcard'+(open?'':' locked'));card.style.setProperty('--wc',mp.color);
+      card.style.setProperty('--bgA',mp.bg[0]);card.style.setProperty('--bgB',mp.bg[1]);
+      const t=el('div','mt');t.append(el('b',null,(m+1)+'. '+tx(mp.name)),el('span',null,open?'★ '+mapStars(m)+' / 60':tx('Versla de eindbaas van {x} om deze kaart te openen.',{x:tx(MAPS[m-1].name)})));
+      const md=el('div','medals');['b','s','g'].forEach(x=>md.append(el('span',(CAMP.md[m+1]||'').includes(x)?'on':null,MEDAL_EMOJI[x])));
+      card.append(obIcon(m,34),t,open?md:el('span','lk','🔒'));
+      card.setAttribute('aria-label',tx(mp.name)+(open?'':' · '+tx('vergrendeld')));
+      card.onclick=()=>{if(open){campMap=m;renderCamp();}};
+      nodes.push(card);
+    });
+    $('camp-body').replaceChildren(...nodes);
+    requestAnimationFrame(()=>{const c=$('camp-body').querySelectorAll('.mapcard:not(.locked)');const last=c[c.length-1];if(last)last.scrollIntoView({block:'center'});});
+    return;
+  }
+  const m=campMap,mp=MAPS[m],cur=campNext(),nodes=[];setMapTheme(m);head.textContent=tx(mp.name);
+  const band=el('div','wband');band.style.setProperty('--wc',mp.color);
+  band.append(el('b',null,(m+1)+'. '+tx(mp.name)),el('span',null,'★ '+mapStars(m)+' / 60 · '+tx(mp.tip)));
+  const goals=el('div','mapgoals');
+  mapGoals(m).forEach(g=>{const done=g.have>=g.need,r=el('div','mg'+(done?' done':''));
+    r.append(el('span','mge',MEDAL_EMOJI[g.medal]),el('span','mtx',g.text),el('span','mp',done?'✓':Math.min(g.have,g.need)+' / '+g.need));goals.append(r);});
+  nodes.push(band,goals);
+  const path=el('div','path');
+  for(let i=0;i<MAPSIZE;i++){
+    const n=mapFirst(m)+i,locked=!campUnlocked(n),b=el('button','node'+(locked?' locked':'')+(n===cur&&!locked?' cur':''));
+    b.id='lv-'+n;b.style.setProperty('--wc',mp.color);b.style.setProperty('--x',NODE_X[i%8]+'px');
+    b.setAttribute('aria-label',locked?tx('Level {n}, vergrendeld',{n}):tx('Level {n}, {s} sterren',{n,s:CAMP.s[n]||0}));
+    b.append(el('span','num',String(i+1)));if(locked)b.append(el('span','lk','🔒'));
+    if(!locked)b.append(starRow(CAMP.s[n]||0,'stars'));
+    if(i%5===4)b.classList.add('boss');if(i===MAPSIZE-1)b.classList.add('final');
+    b.onclick=()=>{if(!locked)levelIntro(n);};
+    path.append(b);
+  }
+  nodes.push(path);
   $('camp-body').replaceChildren(...nodes);
-  requestAnimationFrame(()=>{const c=$('lv-'+cur);if(c)c.scrollIntoView({block:'center'});});
+  requestAnimationFrame(()=>{const c=$('lv-'+cur);if(c)c.scrollIntoView({block:'center'});else $('camp-body').scrollIntoView({block:'start'});});
 }
+// clear instructions before every level: goal, moves, obstacle and a tip
 function levelIntro(n){
-  const lv=makeLevel(n),wd=WORLDS[lv.w],list=el('div','goallist');
+  const lv=makeLevel(n),mp=MAPS[lv.m],list=el('div','goallist');
   lv.goals.forEach(g=>{const r=el('div','gl');r.append(goalIcon(g,30),el('span',null,goalText(g,lv)));list.append(r);});
-  const nodes=[el('h2',null,tx('Level {n}',{n})),el('p',null,tx(wd.name)+(lv.hard?' · '+tx('pittig level'):''))];
-  if(lv.i===0&&!CAMP.s[n])nodes.push(el('div','tipbox',tx(wd.tip)));
-  nodes.push(list,el('p','movesline',tx('{n} zetten',{n:lv.moves})));
+  const tag=lv.boss?tx('Eindbaas'):lv.hard?tx('pittig level'):'';
+  const nodes=[el('h2',null,tx('Level {n}',{n:lv.i+1})),el('p',null,tx(mp.name)+(tag?' · '+tag:''))];
+  nodes.push(el('p','sec2',tx('Doel')),list,el('p','movesline',tx('{n} zetten',{n:lv.moves})));
+  const ob=el('div','tipbox obbox');ob.append(obIcon(lv.m,28),el('span',null,tx(mp.tip)));nodes.push(ob);
+  if(lv.lava)nodes.push(el('p','note',tx('Om de {n} beurten komt er een lavarij bij.',{n:lv.lava})));
+  if(lv.bombDrop)nodes.push(el('p','note',tx('Om de {n} beurten landt er een nieuwe tijdbom.',{n:lv.bombDrop})));
+  if(lv.drop)nodes.push(el('p','note',tx('Om de {n} beurten valt er een steen.',{n:lv.drop})));
+  if(!lv.intro)nodes.push(el('p','tip',tx('Tip: {x}',{x:tx(mp.tips[(lv.i-1)%mp.tips.length])})));
   if(CAMP.s[n])nodes.push(starRow(CAMP.s[n],'stars-mid'));
   nodes.push(btn('primary',tx('Spelen'),()=>{closeCard();startLevel(n);}),btn('secondary',tx('Terug'),closeCard));
   showCard(nodes);
 }
-function startLevel(n){audio();newGame({mode:'camp',lvl:makeLevel(n)});}
+function startLevel(n){audio();setMapTheme(mapOf(n));newGame({mode:'camp',lvl:makeLevel(n)});}
 function winLevel(){
   const left=S.movesLeft,G=S;
   pop(tx('LEVEL GEHAALD!'),W/2,PAD+BOARD*.42,'callout');sfx.cheer(3);confetti(110);buzz([40,40,80]);
@@ -855,34 +1208,54 @@ function winLevel(){
     setTimeout(()=>{if(G!==S)return;finale(()=>{S.shown=S.score;S.over=true;finishLevel();});},left>0?1100:0);
   },1500);
 }
+function medalCard(m,fresh,next){
+  const nodes=[el('h2',null,fresh.length>1?tx('Nieuwe medailles!'):tx('Nieuwe medaille!'))];
+  const box=el('div','medalwin');fresh.forEach(x=>box.append(el('span',null,MEDAL_EMOJI[x])));nodes.push(box);
+  mapGoals(m).filter(g=>fresh.includes(g.medal)).forEach(g=>nodes.push(el('p',null,g.text)));
+  nodes.push(el('p','muted',tx(MAPS[m].name)),btn('primary',tx('Verder'),()=>{closeCard();next();}));
+  confetti(100);sfx.cheer(3);showCard(nodes);
+}
 function finishLevel(){
-  const lv=S.lvl,stars=levelStars(lv,S.score),prev=CAMP.s[lv.n]||0;
+  const lv=S.lvl,stars=levelStars(lv,S.score),prev=CAMP.s[lv.n]||0,wasOpen=lv.boss&&lv.m+1<MAPS.length&&mapOpen(lv.m+1);
   campSave(lv.n,stars,S.score);
+  const fresh=campProgress(lv.m,freshStats());
   const big=el('div','big','0');countUp(big,S.score);
   const sr=starRow(0,'stars-big');
   [...sr.children].forEach((s,i)=>{if(i<stars)setTimeout(()=>{s.classList.add('on','popin');sfx.make();},400+i*350);});
-  const nodes=[el('h2',null,tx('Level {n} gehaald!',{n:lv.n})),sr,big];
+  const nodes=[el('h2',null,lv.boss?tx('Eindbaas verslagen!'):tx('Level {n} gehaald!',{n:lv.i+1})),sr,big];
   nodes.push(el('p',null,stars<3?tx('★★ vanaf {a} · ★★★ vanaf {b}',{a:lv.stars[0],b:lv.stars[1]}):(prev<3?tx('Alle sterren!'):tx('Perfect gespeeld.'))));
-  if(lv.n<LEVELS)nodes.push(btn('primary',tx('Volgend level'),()=>{closeCard();afterGame(()=>levelIntro(lv.n+1));}));
-  nodes.push(btn(lv.n<LEVELS?'secondary':'primary',tx('Opnieuw'),()=>{closeCard();afterGame(()=>startLevel(lv.n));}));
-  nodes.push(btn('secondary',tx('Kaart'),()=>{closeCard();afterGame(()=>show('camp'));}));
-  showCard(nodes);
+  if(lv.boss&&!wasOpen&&lv.m+1<MAPS.length)nodes.push(el('div','tipbox',tx('Nieuwe kaart open: {x}!',{x:tx(MAPS[lv.m+1].name)})));
+  const go=fn=>()=>{closeCard();afterGame(fn);};
+  if(lv.n<LEVELS)nodes.push(btn('primary',lv.boss?tx('Naar {x}',{x:tx(MAPS[lv.m+1].name)}):tx('Volgend level'),go(()=>{if(lv.boss){campMap=lv.m+1;show('camp');}levelIntro(lv.n+1);})));
+  nodes.push(btn(lv.n<LEVELS?'secondary':'primary',tx('Opnieuw'),go(()=>startLevel(lv.n))));
+  nodes.push(btn('secondary',tx('Kaart'),go(()=>{campMap=lv.m;show('camp');})));
+  if(fresh.length)setTimeout(()=>medalCard(lv.m,fresh,()=>showCard(nodes)),0);else showCard(nodes);
 }
 function loseLevel(kind){
   S.over=true;sfx.over();buzz([60,60,120]);
   const lv=S.lvl,todo=el('div','goallist');
+  campProgress(lv.m,freshStats());
   lv.goals.forEach(g=>{const left=goalLeft(S,g);if(!left)return;const r=el('div','gl');r.append(goalIcon(g,26),el('span',null,tx(g.t==='score'?'Nog {n} punten':'Nog {n}',{n:left})));todo.append(r);});
-  const nodes=[el('h2',null,kind==='moves'?tx('Geen zetten meer'):tx('Bord zit vol')),el('p',null,tx('Bijna! Dit moest nog:')),todo];
-  const resume=()=>{S.over=false;S.lock=false;closeCard();hud();};
-  if(kind==='moves'&&!S.cont)nodes.push(btn('primary','▶ '+tx('+5 zetten · bekijk reclame'),()=>rewardAd(tx('Beloonde video'),()=>{
-    S.cont=true;S.movesLeft+=5;resume();pop(tx('+5 zetten!'),W/2,PAD+BOARD/2,'callout');
-    if(trayStuck(S)){S.lock=true;setTimeout(()=>loseLevel('space'),600);}})));
-  if(kind==='space'&&!S.cont2)nodes.push(btn('primary','▶ '+tx('Bord opruimen · bekijk reclame'),()=>rewardAd(tx('Beloonde video'),()=>{
+  const title={moves:tx('Geen zetten meer'),space:tx('Bord zit vol'),bomb:tx('Boem! Een tijdbom ontplofte'),lava:tx('De lava raakte de top')}[kind];
+  const nodes=[el('h2',null,title),el('p',null,tx('Bijna! Dit moest nog:')),todo];
+  const resume=()=>{S.over=false;S.lock=false;closeCard();if(S.tray.every(x=>!x))refillFx(refillG(S));hud();
+    if(trayStuck(S)){S.lock=true;setTimeout(()=>loseLevel('space'),600);}};
+  const rescue=(label,fn)=>nodes.push(btn('primary','▶ '+label,()=>rewardAd(tx('Beloonde video'),fn)));
+  if(kind==='moves'&&!S.cont)rescue(tx('+5 zetten · bekijk reclame'),()=>{
+    S.cont=true;S.movesLeft+=5;resume();pop(tx('+5 zetten!'),W/2,PAD+BOARD/2,'callout');});
+  if(kind==='space'&&!S.cont2)rescue(tx('Bord opruimen · bekijk reclame'),()=>{
     S.cont2=true;const T=now();
-    for(let r=2;r<=5;r++)for(let c=0;c<N;c++){const x=S.grid[r][c];if(x&&x.color&&!x.lock&&!x.sp){dying.push({x:PAD+c*CS,y:PAD+r*CS,spr:cellSprite(x),col:x.color,t0:T+c*30});S.grid[r][c]=null;}}
-    if(trayStuck(S))rerollTray(S);S.trayT=now();flash=.4;sfx.clear(4,1);resume();pop(tx('Opgeruimd!'),W/2,PAD+BOARD/2,'callout');})));
+    for(let r=2;r<=5;r++)for(let c=0;c<N;c++){const x=S.grid[r][c];if(x&&x.color&&!x.lock&&!x.sp&&!x.bomb&&!x.key){dying.push({x:PAD+c*CS,y:PAD+r*CS,spr:cellSprite(x),col:x.color,t0:T+c*30});S.grid[r][c]=null;}}
+    if(trayStuck(S))rerollTray(S);S.trayT=now();flash=.4;sfx.clear(4,1);resume();pop(tx('Opgeruimd!'),W/2,PAD+BOARD/2,'callout');});
+  if(kind==='bomb'&&!S.cont2)rescue(tx('Tijdbommen +5 · bekijk reclame'),()=>{
+    S.cont2=true;S.boom=null;for(let r=0;r<N;r++)for(let c=0;c<N;c++){const x=S.grid[r][c];if(x&&x.bomb)x.bomb+=5;}
+    resume();pop(tx('+5 voor elke tijdbom!'),W/2,PAD+BOARD/2,'callout');});
+  if(kind==='lava'&&!S.cont2)rescue(tx('Lava afkoelen · bekijk reclame'),()=>{
+    S.cont2=true;S.overflow=false;const T=now();
+    for(let r=0;r<4;r++)for(let c=0;c<N;c++){const x=S.grid[r][c];if(x&&x.lava){dying.push({x:PAD+c*CS,y:PAD+r*CS,spr:LAVA,col:'#ff6a2a',t0:T+c*30});S.grid[r][c]=null;}}
+    flash=.4;sfx.clear(4,1);resume();pop(tx('Lava afgekoeld!'),W/2,PAD+BOARD/2,'callout');});
   nodes.push(btn(nodes.length>3?'secondary':'primary',tx('Opnieuw'),()=>{closeCard();afterGame(()=>startLevel(lv.n));}));
-  nodes.push(btn('secondary',tx('Kaart'),()=>{closeCard();afterGame(()=>show('camp'));}));
+  nodes.push(btn('secondary',tx('Kaart'),()=>{closeCard();afterGame(()=>{campMap=lv.m;show('camp');});}));
   showCard(nodes);
 }
 
@@ -974,8 +1347,26 @@ function revive(){
   pop(tx('Tweede kans!'),W/2,PAD+BOARD/2,'callout');
 }
 function startClassic(){
+  if(store.get('blockers-tut')!=='1')return startTutorial();
   newGame({mode:'classic'});
   if(store.get('blockers-intro')!=='1')howTo(true);
+}
+// first game: the bottom row is full except for 2 cells, and the first block fits exactly there
+function startTutorial(){
+  newGame({mode:'classic'});
+  for(let c=0;c<N;c++)S.grid[N-1][c]=c<N-2?{color:COLORS[c%COLORS.length]}:null;
+  S.tray[0]={cells:[[0,0],[0,1]],color:COLORS[4],w:2,h:1};
+  S.tut={step:1,cells:[[N-1,N-2],[N-1,N-1]]};
+  tutHint(tx('Sleep het blok van 2 naar de 2 lege vakjes onderaan.'));
+}
+function tutHint(t){$('hint').textContent=t;$('hint').classList.add('tut');}
+function tutStep(rep){
+  const t=S.tut;
+  if(t.step===1){if(!rep.L){tutHint(tx('Maak de onderste rij vol: sleep het blok van 2 naar de lege vakjes.'));return;}
+    t.step=2;tutHint(tx('Rij vol, rij weg! Elke volle rij of kolom verdwijnt en geeft punten.'));return;}
+  if(t.step===2){t.step=3;tutHint(tx('Wis 2 lijnen tegelijk voor een Raket. Het spel stopt als er geen blok meer past.'));return;}
+  S.tut=null;store.set('blockers-tut','1');store.set('blockers-intro','1');$('hint').classList.remove('tut');
+  $('hint').textContent=tx('Wis 2 lijnen tegelijk voor een Raket, 3 voor een Bom en een kleurlijn voor een Prisma.');
 }
 function legendIcon(sp){const c=el('canvas');c.width=c.height=52;const g=c.getContext('2d');g.scale(52/CS,52/CS);
   if(sp==='stone')g.drawImage(STONE['2/2'],0,0,CS,CS);else{paintBlock(g,CS,sp==='raket'?'#3fc6ff':sp==='bom'?'#ff5f7e':'#a77bff');paintIcon(g,CS,'#a77bff',sp);}return c}
@@ -1086,10 +1477,12 @@ function frame(){
   const pulse=.55+.45*Math.sin(T/110);
   for(let r=0;r<N;r++)for(let c=0;c<N;c++){
     const x=PAD+c*CS,y=PAD+r*CS,cell=S.grid[r][c],k=r*N+c;
+    if(cell&&cell.hole){ctx.drawImage(WATER,x,y,CS,CS);continue;}
     ctx.fillStyle='#e9eef7';rr(ctx,x+2,y+2,CS-4,CS-4,8);ctx.fill();
     ctx.fillStyle='rgba(42,37,80,.03)';rr(ctx,x+2,y+2,CS-4,CS*.3,6);ctx.fill();
     const iced=S.ice[r][c]>0;
     if(iced&&!cell)ctx.drawImage(ICE,x,y,CS,CS);
+    const pv=S.paint[r][c];if(pv&&!cell)ctx.drawImage(PAINT[pv],x,y,CS,CS);
     const age=T-S.born[r][c];
     if(cell&&cell.appear&&T<cell.appear)continue;
     const sc=age<0?1:age<220?1+.22*Math.sin(age/220*Math.PI)*(1-age/220):1;
@@ -1099,9 +1492,15 @@ function frame(){
     }else if(cell&&cell.moss){
       drawSpr(MOSS,x,y,CS,sc*(1+.03*Math.sin(T/320+k)));
       if(glow.has(k)){ctx.globalAlpha=pulse*.35;ctx.drawImage(WHITE,x,y,CS,CS);ctx.globalAlpha=1;}
+    }else if(cell&&(cell.chest||cell.lava)){
+      if(cell.lava){ctx.save();ctx.shadowColor='#ff6a1a';ctx.shadowBlur=6+4*Math.sin(T/260+k);drawSpr(LAVA,x,y,CS,sc);ctx.restore();}
+      else drawSpr(CHEST,x,y,CS,age>=0&&age<160?1-.12*Math.sin(age/160*Math.PI):1);
+      if(glow.has(k)){ctx.globalAlpha=pulse*.35;ctx.drawImage(WHITE,x,y,CS,CS);ctx.globalAlpha=1;}
     }else if(cell){
       if(cell.sp){const ap=age<400&&age>=0?easeBack(Math.min(1,age/400)):1;
         ctx.save();ctx.shadowColor=cell.color;ctx.shadowBlur=10+8*Math.sin(T/180+k);drawSpr(cellSprite(cell),x,y,CS,ap*(1+.04*Math.sin(T/160+k)));ctx.restore();}
+      else if(cell.bomb)drawBomb(x,y,cell,T,sc);
+      else if(cell.key)drawSpr(KEYX[cell.color],x,y,CS,sc);
       else drawSpr(glow.has(k)&&!cell.lock?SPR[gcol]:SPR[cell.color],x,y,CS,sc);
       if(cell.lock)drawSpr(LOCK,x,y,CS,sc);
       if(glow.has(k)){ctx.globalAlpha=pulse*.35;ctx.drawImage(WHITE,x,y,CS,CS);ctx.globalAlpha=1;}
@@ -1110,7 +1509,10 @@ function frame(){
       if(glow.has(k)){ctx.globalAlpha=pulse*.35;ctx.drawImage(WHITE,x,y,CS,CS);ctx.globalAlpha=1;}
     }
     if(iced&&cell)ctx.drawImage(ICEFRAME,x,y,CS,CS);
+    if(pv&&cell)paintMark(x,y,pv);
   }
+  if(S.tut&&S.tut.step===1)S.tut.cells.forEach(([r,c])=>{if(S.grid[r][c])return;const x=PAD+c*CS,y=PAD+r*CS;
+    ctx.strokeStyle=`rgba(255,176,32,${.5+.5*Math.sin(T/160)})`;ctx.lineWidth=4;rr(ctx,x+3,y+3,CS-6,CS-6,9);ctx.stroke();});
   dying=dying.filter(d=>{
     const a=(T-d.t0)/420;if(a>1)return false;
     if(a<0){drawSpr(d.spr,d.x,d.y,CS);return true;}
@@ -1196,6 +1598,7 @@ function setProfile(p){
   NET.player=p&&p.nickname?{nick:p.nickname,lang:p.lang,code:p.friend_code,best:p.best||0,week:weekKey(),weekBest:p.week_best||0,
     camp:p.camp||{},friends:NET.friends.map(f=>f.id)}:null;
   if(NET.player&&mergeCamp(NET.player.camp))store.set(CAMPKEY,JSON.stringify(CAMP));
+  if(NET.player&&p.medals){mergeMedals(p.medals);const loc=JSON.stringify(CAMP.md);if(loc!==JSON.stringify(p.medals))pushMedals();}
 }
 // A duel from the server in the shape the game uses (from, to, r per player).
 function toDuel(x){
@@ -1300,12 +1703,13 @@ function pushCamp(n){
 /* ---------- menu ---------- */
 function renderMenu(){
   $('me-best').textContent=Math.max(localBest(),NET.player?.best||0);
-  $('camp-sub').textContent=campStars()?tx('Level {n}',{n:campNext()})+' · ★ '+campStars()+' / '+LEVELS*3:tx('75 levels in 5 werelden, elk met een nieuw obstakel.');
+  $('camp-sub').textContent=campStars()?tx('Level {n}',{n:campNext()})+' · ★ '+campStars()+' / '+LEVELS*3:tx('200 levels op 10 kaarten, elk met een nieuw obstakel.');
   $('me-name').textContent=NET.player?.nick||store.get('blockers-nick')||'–';
+  const mc=medalCount();$('me-medals').hidden=!mc;$('me-medals').textContent='🏅 '+mc;
   const n=online()?NET.duels.filter(d=>myTurn(d)).length:0;$('mp-badge').hidden=!n;$('mp-badge').textContent=n;
 }
 $('go-classic').onclick=()=>{audio();startClassic();};
-$('go-camp').onclick=()=>{audio();show('camp');};
+$('go-camp').onclick=()=>{audio();campMap=null;show('camp');};
 $('go-mp').onclick=()=>show('mp');
 $('go-lb').onclick=()=>show('lb');
 
@@ -1440,7 +1844,8 @@ function renderLB(tab,rows){
   const l=el('div','list');
   rows.forEach(p=>{
     const r=el('div','row'+(p.uid===NET.me?' you':'')),k=p.rank;
-    r.append(el('span','rank'+(k<=3?' g'+k:''),String(k)),el('span','nm',p.uid===NET.me?p.nick+' ('+tx('jij')+')':p.nick),el('span','pts',String(p.score||0)));
+    const fm=p.uid===NET.me?medalCount():((NET.friends.find(f=>f.id===p.uid)||{}).medals||0);
+    r.append(el('span','rank'+(k<=3?' g'+k:''),String(k)),el('span','nm',(p.uid===NET.me?p.nick+' ('+tx('jij')+')':p.nick)+(tab==='friends'&&fm?' · 🏅 '+fm:'')),el('span','pts',String(p.score||0)));
     if(tab==='friends'&&p.uid&&p.uid!==NET.me)r.append(btn('mini',tx('Uitdagen'),()=>challenge(p.uid)));
     else r.append(el('span',p.friend?'muted':null,p.friend?tx('vriend'):''));
     l.append(r);});
@@ -1472,8 +1877,19 @@ function settingsCard(){
   const rin=el('input');rin.type='text';rin.id='rcode';rin.maxLength=14;rin.autocomplete='off';rin.placeholder='XXXX-XXXX-XXXX';rin.setAttribute('aria-label',tx('Herstelcode ingeven'));
   const rmsg=el('p','note',''),rgo=btn('mini go',tx('Herstellen'),()=>restoreFlow(rin.value,rmsg));
   const rrow=el('div','codebox');rrow.append(rin,rgo);
+  const sw=(on,fn)=>{const b=btn('mini switch'+(on?' go':''),on?tx('Aan'):tx('Uit'),()=>{fn(!on);settingsCard();});b.setAttribute('aria-pressed',on);return b;};
+  const row=(label,ctl)=>{const r=el('div','setrow');r.append(el('span',null,label),ctl);return r;};
+  const themes=el('div','themes'),stars=campStars();
+  THEMES.forEach(t=>{const open=stars>=t.need,b=el('button','themebtn'+(t.id===themeId?' on':'')+(open?'':' locked'));
+    const pv=el('canvas');pv.width=88;pv.height=28;pv.style.width='66px';pv.style.height='21px';const g=pv.getContext('2d');g.scale(2,2);
+    [0,2,4].forEach((ci,j)=>{const prev=themeId;themeId=t.id;const spr=sprite(14,gg=>paintThemed(gg,14,COLORS[ci],t.style));themeId=prev;g.drawImage(spr,j*15,0,14,14);});
+    b.append(pv,el('span',null,tx(t.name)),el('small',null,open?(t.id===themeId?tx('gekozen'):''):'★ '+t.need));
+    b.onclick=()=>{if(!open)return;themeId=t.id;store.set('blockers-theme',t.id);buildBlocks();settingsCard();};themes.append(b);});
   showCard([el('h2',null,tx('Instellingen')),
     h(tx('Taal')),langRow(settingsCard),
+    h(tx('Geluid en trillen')),row(tx('Geluidseffecten'),sw(!muted,v=>{muted=!v;store.set('blockers-mute',muted?'1':'0');setMuteIcon();if(v){audio();sfx.pick();}})),
+    row(tx('Trillen'),sw(vibrate,v=>{vibrate=v;store.set('blockers-vib',v?'1':'0');if(v)buzz(30);})),
+    h(tx('Blokthema')),el('p','note',tx('Speel thema\'s vrij met sterren uit de campagne.')),themes,
     h(tx('Gebruikersnaam')),el('p','set-v',NET.player?.nick||store.get('blockers-nick')||'–'),
     h(tx('Herstelcode')),el('p','note',tx('Bewaar deze code. Op een nieuw toestel zet je er je account mee terug.')),cbox,
     h(tx('Herstelcode ingeven')),rrow,rmsg,
@@ -1497,7 +1913,7 @@ async function restoreFlow(raw,msg){
         if(r.status==='self')return fail(tx('Dit is je huidige account.'));
         if(r.status!=='restored')return fail(tx('Probeer opnieuw'));
         setProfile(r.profile);
-        CAMP={s:{...(NET.player?.camp||{})},b:{}};store.set(CAMPKEY,JSON.stringify(CAMP));store.set('blockers-best',NET.player?.best||0);
+        CAMP={s:{...(NET.player?.camp||{})},b:{},st:{},md:{...((r.profile&&r.profile.medals)||{})}};saveCampLocal();store.set('blockers-best',NET.player?.best||0);
         store.set('blockers-wk-'+weekKey(),NET.player?.weekBest||0);
         await refreshFriends();await refreshDuels();
         renderMenu();showCard([el('h2',null,tx('Account hersteld')),el('p',null,NET.player?.nick||''),btn('primary',tx('Sluiten'),closeCard)]);

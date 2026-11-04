@@ -1,6 +1,6 @@
 {
   "name": "gridquake",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "Gridquake: Block Puzzle - smartphone game (Android app, built with Capacitor like Seed & Destroy)",
   "type": "module",

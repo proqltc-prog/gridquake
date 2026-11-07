@@ -4,7 +4,7 @@ name: Play Store build
 # the upload key. Runs when a release is published, or by hand. The bundle is
 # offered as the artifact "gridquake-play" and attached to the release.
 # Needs the secrets ANDROID_UPLOAD_KEYSTORE and ANDROID_UPLOAD_PASSWORD
-# (see the workflow "Create upload key").
+# (made on the owner's PC, see README).
 on:
   release:
     types: [published]
@@ -24,7 +24,7 @@ jobs:
       - name: Check the upload key
         run: |
           if [ -z "$UPLOAD_KEYSTORE" ] || [ -z "$UPLOAD_PASSWORD" ]; then
-            echo "::error::Secrets ANDROID_UPLOAD_KEYSTORE and ANDROID_UPLOAD_PASSWORD are missing (run 'Create upload key' first)."
+            echo "::error::Secrets ANDROID_UPLOAD_KEYSTORE and ANDROID_UPLOAD_PASSWORD are missing (see README)."
             exit 1
           fi
       - uses: actions/checkout@v4

@@ -6,10 +6,7 @@ Block-puzzle game for smartphones (`be.proqltc.gridquake`). It is built the same
 A test APK is only built on request: run **Android app** by hand (Actions → Android app → Run workflow), only after the owner approved it. Until then the game is tested in the web version. To install an APK, open the run in the **Actions** tab, download the artifact `gridquake-apk`, unzip it and install `app-debug.apk` on your Android phone. Every test build is signed with the same test key, so a new version installs over the old one.
 
 ## Google Play version
-1. Run **Create upload key** once (Actions → Create upload key → Run workflow). From the `upload-key` artifact:
-   - put the contents of `upload.keystore.base64.txt` in the secret `ANDROID_UPLOAD_KEYSTORE`;
-   - put the contents of `password.txt` in the secret `ANDROID_UPLOAD_PASSWORD`;
-   - keep `upload.keystore` somewhere safe.
+1. The upload key is made on the owner's PC and kept in `C:\Dev\Gridquake\sleutels` (never in the repository, OneDrive or a chat). Its contents go into the GitHub secrets `ANDROID_UPLOAD_KEYSTORE` (from `upload.keystore.base64.txt`) and `ANDROID_UPLOAD_PASSWORD` (from `wachtwoord.txt`), entered by the owner on the GitHub website. Key alias: `upload`.
 2. Publish a release, or run **Play Store build** by hand. The artifact `gridquake-play` holds the signed `.aab` for Google Play.
 
 ## Status

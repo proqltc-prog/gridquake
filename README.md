@@ -11,6 +11,7 @@ A test APK is only built on request: run **Android app** by hand (Actions → An
 
 ## Status
 - Campaign: 10 maps of 20 levels (stones, ice, chains, moss, time bombs, islands, paint, keys and chests, rising lava, mixed). A map opens after its boss (level 20). Each map has 3 goals with bronze, silver and gold medals. Moves and star limits are tuned with a bot that plays every level 24 times.
+- Score: 10 points per placed cell, 200 for one line (more for several lines at once), a streak of clearing moves multiplies by 2, 3, 4…; 1,000 per move left in a level. Big numbers use the thousands separator of the language. Version 0.6 converted older scores once (x10, on the device and on the server, migration `gq05`).
 - Settings: language, theme (Light or Dark, free for everyone), sound effects and vibration switches, recovery code, ad privacy, delete.
 - First start: a 4-screen guide on how the game works. The campaign starts with a practice map of 5 guided levels (place blocks, Rocket, using a Rocket, Bomb, Prism) with blocks on the board, lit target cells and an explanation above the board; map 1 opens after it. Classic has no tutorial.
 - Online: leaderboards (world, week, friends), friends, duels (random and friend), campaign stars, recovery code and account deletion run on the Supabase functions `gq_*` (project seed-and-destroy, schema `gridquake`), with an anonymous login per device, the same way as Seed & Destroy. Without a connection, Classic and Campaign keep working.

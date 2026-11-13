@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gridquake-web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-web.mjs", ".", "5178"],
+      "port": 5178
+    }
+  ]
+}

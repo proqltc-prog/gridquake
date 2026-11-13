@@ -14,7 +14,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 
 ## Test run 0.7.0 (13 November 2026)
 
-53 of 53 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
+59 of 59 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
 
 | ID | Type | Test | Result |
 |---|---|---|---|
@@ -25,8 +25,8 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | U5 | UAT | Turn: block turns a quarter, one helper used | pass |
 | U6 | UAT | New blocks: tray replaced by blocks that fit | pass |
 | U7 | UAT | Hammer: clears one block, costs no move | pass |
-| U8 | UAT | Classic game over: record message, coins, "3 new blocks" continues the game | pass |
-| U9 | UAT | Level start with Starter Rocket and +3 moves | pass |
+| U8 | UAT | Classic game over: 4 choices, coins, play on after a video (once per game) | pass |
+| U9 | UAT | Level start with Starter Rocket | pass |
 | U10 | UAT | Level won: coins, win streak +1, gift box after level 3 | pass |
 | U11 | UAT | Level lost, Retry: win streak back to 0 | pass |
 | U12 | UAT | Power combo: rocket next to bomb goes off together | pass |
@@ -42,7 +42,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | N3 | negative | Daily wheel twice on the same day | pass |
 | N4 | negative | Hammer on an empty cell costs nothing | pass |
 | N5 | negative | Hammer on water or a chest costs nothing | pass |
-| N6 | negative | Helper at 0: shop opens, nothing used | pass |
+| N6 | negative | Helper at 0: grey, does nothing, nothing used | pass |
 | N7 | negative | Helper during an animation or with a card open is ignored | pass |
 | N8 | negative | Starter Rocket on a full board is not used up | pass |
 | N9 | negative | Gift box not given twice when replaying level 3 | pass |
@@ -71,6 +71,12 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | N30 | negative | Double tap on the coin video starts one video | pass |
 | N31 | negative | The end card no longer appears after the player left | pass |
 | N32 | negative | Settings show no old device-only name | pass |
+| U23 | UAT | All five helpers in a column to the right of the board, inside the screen | pass |
+| U24 | UAT | Rocket from the shop: tap an empty cell and it is placed | pass |
+| U25 | UAT | Classic game over: play on with a heart (3 new blocks) | pass |
+| U26 | UAT | Level out of moves: play on with a heart (+5 moves); Menu goes to the menu | pass |
+| N33 | negative | Heart in the column shows the count but is not used during play | pass |
+| N34 | negative | Rocket on an occupied cell costs nothing | pass |
 | M3 | UAT (manual) | Very first start: straight into exercise 1, no questions | pass |
 | M4 | security (manual) | Without `?test=1` the test hook does not exist | pass |
 

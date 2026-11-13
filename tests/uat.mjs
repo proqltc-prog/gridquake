@@ -16,8 +16,8 @@ const G=()=>window.GQ;
 const piece=(cells,color='#a77bff')=>({cells,color,w:Math.max(...cells.map(p=>p[1]))+1,h:Math.max(...cells.map(p=>p[0]))+1});
 // ---- fake server: the same rules as gridquake.* in migration gq09 ----
 const F={};const day=()=>new Date().toDateString();
-const PRICE={hamer:60,draai:40,dobbel:50,raket:80,zetten:90};
-const SEGS=[{c:20},{it:'hamer'},{c:50},{it:'draai'},{c:10},{it:'dobbel'},{c:100},{it:'zetten'},{c:30},{it:'raket'}];
+const PRICE={hamer:60,draai:40,dobbel:50,raket:80,hart:90};
+const SEGS=[{c:20},{it:'hamer'},{c:50},{it:'draai'},{c:10},{it:'dobbel'},{c:100},{it:'hart'},{c:30},{it:'raket'}];
 function resetFake(o={}){for(const k in F)delete F[k];Object.assign(F,{coins:100,items:{hamer:1,draai:1,dobbel:1},wheelDay:null,extraDay:null,extra:0,adAt:0,adDay:null,adViews:0,
   earned:{},chests:{},cg:null,cp:0,replayAt:0,unverified:true,offline:false,calls:[],levelAt:0,classicAt:0,delay:0},o);}
 function fj(){const d=day();return {coins:F.coins,items:{...F.items},wheel_free:F.wheelDay!==d,extra:F.extraDay===d?F.extra:0,extra_possible:F.extraDay!==d,
@@ -48,6 +48,7 @@ const wallet=()=>({c:F.coins,it:F.items,chest:F.chests,streak:G().WAL.streak});
 function setWallet(c,it={},extra={}){resetFake({coins:c,items:{...it},chests:extra.chests||{},earned:extra.earned||{},wheelDay:extra.wheelDay??null});
   G().WAL.streak=extra.streak||0;G().applyWallet(fj());}
 async function mapOverview(m){G().show('camp');await wait(50);if(!document.querySelector('.mapcard')){document.querySelector('#s-camp [data-back]').click();await wait(50);G().show('camp');await wait(50);}document.querySelectorAll('.mapcard')[m].click();await wait(100);}
+function gameOverBoard(S){for(let r=0;r<8;r++)for(let c=0;c<8;c++)S.grid[r][c]=(r+c)%2?{color:'#ff5f7e'}:null;S.tray=[piece([[0,0],[0,1]]),null,null];}
 function emptyBoard(){const S=G().S;for(let r=0;r<8;r++)for(let c=0;c<8;c++)S.grid[r][c]=null;}
 
 const results=[];
@@ -93,7 +94,7 @@ async function runAll(){
     const S=G().S;emptyBoard();for(let c=0;c<7;c++){S.grid[0][c]={color:'#ff5f7e'};S.grid[1][c]={color:'#ff5f7e'};}
     S.tray=[piece([[0,0],[1,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(1500);
     const sp=S.grid.flat().some(x=>x&&x.sp),tools=document.querySelectorAll('#tools .tool').length;
-    return {pass:!$('tools').hidden&&tools===3&&!sp&&S.score>0,detail:`tools ${tools}, power-blok ${sp}, score ${S.score}`};
+    return {pass:!$('tools').hidden&&tools===5&&!sp&&S.score>0,detail:`tools ${tools}, power-blok ${sp}, score ${S.score}`};
   });
   await t('U5','UAT','Draaien: blok draait een kwartslag, 1 hulpmiddel gebruikt',async()=>{
     setWallet(0,{draai:1});G().startClassic();await wait(300);const S=G().S;S.tray[0]=piece([[0,0],[0,1],[0,2]]);
@@ -110,22 +111,22 @@ async function runAll(){
     emptyBoard();S.grid[4][4]={color:'#3fc6ff'};const moves=S.movesLeft;await G().toolTap('hamer');await G().hammer(4,4);await wait(700);
     return {pass:!S.grid[4][4]&&S.movesLeft===moves&&wallet().it.hamer===0,detail:`zetten ${moves}->${S.movesLeft}`};
   });
-  await t('U8','UAT','Klassiek game-over: record-melding, munten en "3 nieuwe blokken"',async()=>{
+  await t('U8','UAT','Klassiek game-over: 4 knoppen, munten, verder spelen met een filmpje (1 keer per spel)',async()=>{
     setWallet(0,{});localStorage.setItem('blockers-best','999999');G().startClassic();await wait(300);const S=G().S;
-    S.best=999999;S.bestStart=999999;S.score=4500;S.shown=4500;
-    for(let r=0;r<8;r++)for(let c=0;c<8;c++)S.grid[r][c]=(r+c)%2?{color:'#ff5f7e'}:null;
-    S.tray=[piece([[0,0],[0,1]]),null,null];G().endGame();await wait(1200);
-    const txt=cardText(),coins=wallet().c;
-    const ok1=txt.includes('tot je record')&&txt.includes('+3 munten')&&!!cardBtn('3 nieuwe blokken')&&coins===3;
-    cardBtn('3 nieuwe blokken').click();await wait(4600);
-    const resumed=!S.over&&S.cont3===true&&S.tray.filter(Boolean).length===3;
-    return {pass:ok1&&resumed,detail:`munten ${coins}, verder gespeeld ${resumed}`};
+    S.best=999999;S.bestStart=999999;S.score=4500;S.shown=4500;gameOverBoard(S);G().endGame();await wait(1200);
+    const txt=cardText(),btns=[...document.querySelectorAll('#ovcard button')].map(b=>b.textContent);
+    const four=btns.length===4&&btns[0].includes('hartje')&&btns[1].includes('bekijk reclame')&&btns[2]==='Opnieuw spelen'&&btns[3]==='Menu';
+    const heartOff=cardBtn('hartje').disabled,noRecordMsg=!txt.includes('tot je record');
+    cardBtn('bekijk reclame').click();await wait(4600);const resumed=!S.over&&S.adUsed===true&&S.tray.filter(Boolean).length===3;
+    gameOverBoard(S);S.over=false;G().endGame();await wait(1200);const vid=cardBtn('Filmpje al gebruikt');
+    return {pass:four&&heartOff&&noRecordMsg&&txt.includes('+3 munten')&&resumed&&!!vid&&vid.disabled,detail:btns.join(' | ')};
   });
-  await t('U9','UAT','Level-start met Start-Raket en +3 zetten',async()=>{
-    setWallet(0,{raket:1,zetten:1});G().levelIntro(4);await wait(50);
+  await t('U9','UAT','Level-start met Start-Raket',async()=>{
+    setWallet(0,{raket:1});G().levelIntro(4);await wait(50);
+    const boosts=document.querySelectorAll('#ovcard button.boost').length;
     document.querySelectorAll('#ovcard button.boost').forEach(b=>b.click());cardBtn('Spelen').click();await wait(900);
-    const S=G().S,rk=S.grid.flat().some(x=>x&&x.sp==='raket'),w=wallet();
-    return {pass:rk&&S.movesLeft===S.lvl.moves+3&&!w.it.raket&&!w.it.zetten,detail:`raket ${rk}, zetten ${S.movesLeft}/${S.lvl.moves}`};
+    const S=G().S,rk=S.grid.flat().some(x=>x&&x.sp==='raket');
+    return {pass:boosts===1&&rk&&S.movesLeft===S.lvl.moves&&!wallet().it.raket,detail:'keuzes '+boosts};
   });
   await t('U10','UAT','Level winnen: munten, winreeks +1 en cadeau na level 3',async()=>{
     setWallet(0,{},{streak:0});G().CAMP.s={1:1,2:1};G().startLevel(3);await wait(300);const S=G().S;
@@ -223,9 +224,10 @@ async function runAll(){
     setWallet(0,{hamer:2});G().startClassic();await wait(300);const S=G().S;S.grid[1][1]={hole:true};S.grid[2][2]={chest:true};
     await G().hammer(1,1);await G().hammer(2,2);return {pass:wallet().it.hamer===2&&!!S.grid[2][2],detail:''};
   });
-  await t('N6','negatief','Hulpmiddel op 0: winkel opent, niets verbruikt',async()=>{
-    setWallet(5,{});G().startClassic();await wait(300);await G().toolTap('hamer');await wait(50);
-    return {pass:cardText().includes('Winkel')&&wallet().c===5&&!G().S.tool,detail:''};
+  await t('N6','negatief','Hulpmiddel op 0: grijs, doet niets, niets verbruikt',async()=>{
+    setWallet(5,{});G().startClassic();await wait(300);const b=[...document.querySelectorAll('#tools .tool')][0];
+    await G().toolTap('hamer');await wait(50);
+    return {pass:b.disabled&&$('ov').hidden&&wallet().c===5&&!G().S.tool,detail:''};
   });
   await t('N7','negatief','Hulpmiddel tijdens animatie of open venster wordt genegeerd',async()=>{
     setWallet(0,{dobbel:2});G().startClassic();await wait(300);const S=G().S;S.lock=true;await G().toolTap('dobbel');S.lock=false;
@@ -343,10 +345,9 @@ async function runAll(){
     return {pass:txt.includes('gehaald')&&!txt.includes('Geen verbinding')&&!/\+\d+ munten/.test(txt)&&wallet().c===0,detail:txt.split('\n').slice(0,4).join(' | ')};
   });
   await t('N28','negatief','Verbinding weg op het game-over-scherm: het scherm blijft staan met een melding',async()=>{
-    setWallet(0,{dobbel:1});G().startClassic();await wait(300);const S=G().S;S.score=1000;S.shown=1000;
-    for(let r=0;r<8;r++)for(let c=0;c<8;c++)S.grid[r][c]=(r+c)%2?{color:'#ff5f7e'}:null;S.tray=[piece([[0,0],[0,1]]),null,null];
-    G().endGame();await wait(1200);F.offline=true;cardBtn('Nieuwe blokken gebruiken').click();await wait(300);F.offline=false;
-    const txt=cardText();return {pass:!$('ov').hidden&&!!cardBtn('Opnieuw spelen')&&txt.includes('Geen verbinding')&&wallet().it.dobbel===1,detail:''};
+    setWallet(0,{hart:1});G().startClassic();await wait(300);const S=G().S;S.score=1000;S.shown=1000;gameOverBoard(S);
+    G().endGame();await wait(1200);F.offline=true;cardBtn('hartje').click();await wait(300);F.offline=false;
+    const txt=cardText();return {pass:!$('ov').hidden&&!!cardBtn('Opnieuw spelen')&&txt.includes('Geen verbinding')&&wallet().it.hart===1,detail:''};
   });
   await t('N29','negatief','Tijdens het gebruik van de hamer ligt het bord vast',async()=>{
     setWallet(0,{hamer:1});G().startClassic();await wait(300);const S=G().S;emptyBoard();S.grid[3][3]={color:'#3fc6ff'};F.delay=400;
@@ -367,6 +368,38 @@ async function runAll(){
     const P=G().NET.player;G().NET.player=null;localStorage.setItem('blockers-nick','OudeNaam');$('settings').click();await wait(100);
     const txt=cardText();close();G().NET.player=P;localStorage.removeItem('blockers-nick');
     return {pass:!txt.includes('OudeNaam'),detail:''};
+  });
+  // ---------------- helper column next to the board ----------------
+  await t('U23','UAT','Hulpmiddelen staan in een kolom rechts naast het bord, binnen het scherm',async()=>{
+    setWallet(0,{hamer:1,raket:2});G().startClassic();await wait(400);
+    const t=$('tools').getBoundingClientRect(),c=$('cv').getBoundingClientRect(),n=document.querySelectorAll('#tools .tool').length;
+    return {pass:n===5&&t.left>=c.right-1&&t.right<=innerWidth+1&&Math.abs(t.top-c.top)<40,detail:`${n} knoppen, links ${Math.round(t.left)} / bord rechts ${Math.round(c.right)}`};
+  });
+  await t('U24','UAT','Raket uit de winkel: tik op een leeg vakje en hij staat er',async()=>{
+    setWallet(0,{raket:2});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    await G().toolTap('raket');const sel=G().S.tool==='raket';await G().placeRocket(2,5);
+    return {pass:sel&&S.grid[2][5]&&S.grid[2][5].sp==='raket'&&wallet().it.raket===1&&!S.tool,detail:''};
+  });
+  await t('U25','UAT','Klassiek game-over: verder spelen met een hartje',async()=>{
+    setWallet(0,{hart:2});G().startClassic();await wait(300);const S=G().S;gameOverBoard(S);G().endGame();await wait(1200);
+    const b=cardBtn('hartje');const label=b.textContent;b.click();await wait(500);
+    return {pass:label.includes('(2)')&&!S.over&&$('ov').hidden&&wallet().it.hart===1&&S.tray.filter(Boolean).length===3,detail:label};
+  });
+  await t('U26','UAT','Level zonder zetten: verder spelen met een hartje geeft +5 zetten; Menu gaat naar het menu',async()=>{
+    setWallet(0,{hart:1});G().startLevel(1);await wait(300);const S=G().S;S.movesLeft=0;G().loseLevel('moves');await wait(100);
+    const btns=[...document.querySelectorAll('#ovcard button')].map(b=>b.textContent);cardBtn('hartje').click();await wait(500);
+    const ok=!S.over&&S.movesLeft===5&&wallet().it.hart===0&&$('ov').hidden;
+    S.movesLeft=0;G().loseLevel('moves');await wait(100);const heartOff=cardBtn('hartje').disabled;cardBtn('Menu').click();await wait(400);
+    return {pass:btns.length===4&&ok&&heartOff&&G().screen==='menu',detail:btns.join(' | ')};
+  });
+  await t('N33','negatief','Hartje in de kolom: toont het aantal, maar wordt tijdens het spel niet verbruikt',async()=>{
+    setWallet(0,{hart:2});G().startClassic();await wait(300);const b=[...document.querySelectorAll('#tools .tool')][4];
+    await G().toolTap('hart');return {pass:b.textContent.includes('Hartje')&&b.textContent.includes('2')&&!b.disabled&&wallet().it.hart===2&&G().pops.some(p=>p.includes('hartje')),detail:''};
+  });
+  await t('N34','negatief','Raket op een bezet vakje kost niets',async()=>{
+    setWallet(0,{raket:1});G().startClassic();await wait(300);const S=G().S;S.grid[1][1]={color:'#ff5f7e'};
+    await G().toolTap('raket');await G().placeRocket(1,1);
+    return {pass:wallet().it.raket===1&&!S.grid[1][1].sp,detail:''};
   });
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

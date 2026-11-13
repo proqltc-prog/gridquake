@@ -93,7 +93,7 @@ async function runAll(){
     const S=G().S;emptyBoard();for(let c=0;c<7;c++){S.grid[0][c]={color:'#ff5f7e'};S.grid[1][c]={color:'#ff5f7e'};}
     S.tray=[piece([[0,0],[1,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(1500);
     const sp=S.grid.flat().some(x=>x&&x.sp),tools=document.querySelectorAll('#tools .tool').length;
-    return {pass:!$('tools').hidden&&tools===3&&!sp&&S.score>0,detail:`tools ${tools}, power-blok ${sp}, score ${S.score}`};
+    return {pass:!$('tools').hidden&&tools===5&&!sp&&S.score>0,detail:`tools ${tools}, power-blok ${sp}, score ${S.score}`};
   });
   await t('U5','UAT','Draaien: blok draait een kwartslag, 1 hulpmiddel gebruikt',async()=>{
     setWallet(0,{draai:1});G().startClassic();await wait(300);const S=G().S;S.tray[0]=piece([[0,0],[0,1],[0,2]]);
@@ -223,9 +223,10 @@ async function runAll(){
     setWallet(0,{hamer:2});G().startClassic();await wait(300);const S=G().S;S.grid[1][1]={hole:true};S.grid[2][2]={chest:true};
     await G().hammer(1,1);await G().hammer(2,2);return {pass:wallet().it.hamer===2&&!!S.grid[2][2],detail:''};
   });
-  await t('N6','negatief','Hulpmiddel op 0: winkel opent, niets verbruikt',async()=>{
-    setWallet(5,{});G().startClassic();await wait(300);await G().toolTap('hamer');await wait(50);
-    return {pass:cardText().includes('Winkel')&&wallet().c===5&&!G().S.tool,detail:''};
+  await t('N6','negatief','Hulpmiddel op 0: grijs, doet niets, niets verbruikt',async()=>{
+    setWallet(5,{});G().startClassic();await wait(300);const b=[...document.querySelectorAll('#tools .tool')][0];
+    await G().toolTap('hamer');await wait(50);
+    return {pass:b.disabled&&$('ov').hidden&&wallet().c===5&&!G().S.tool,detail:''};
   });
   await t('N7','negatief','Hulpmiddel tijdens animatie of open venster wordt genegeerd',async()=>{
     setWallet(0,{dobbel:2});G().startClassic();await wait(300);const S=G().S;S.lock=true;await G().toolTap('dobbel');S.lock=false;
@@ -367,6 +368,36 @@ async function runAll(){
     const P=G().NET.player;G().NET.player=null;localStorage.setItem('blockers-nick','OudeNaam');$('settings').click();await wait(100);
     const txt=cardText();close();G().NET.player=P;localStorage.removeItem('blockers-nick');
     return {pass:!txt.includes('OudeNaam'),detail:''};
+  });
+  // ---------------- helper column next to the board ----------------
+  await t('U23','UAT','Hulpmiddelen staan in een kolom rechts naast het bord, binnen het scherm',async()=>{
+    setWallet(0,{hamer:1,raket:2});G().startClassic();await wait(400);
+    const t=$('tools').getBoundingClientRect(),c=$('cv').getBoundingClientRect(),n=document.querySelectorAll('#tools .tool').length;
+    return {pass:n===5&&t.left>=c.right-1&&t.right<=innerWidth+1&&Math.abs(t.top-c.top)<40,detail:`${n} knoppen, links ${Math.round(t.left)} / bord rechts ${Math.round(c.right)}`};
+  });
+  await t('U24','UAT','Raket uit de winkel: tik op een leeg vakje en hij staat er',async()=>{
+    setWallet(0,{raket:2});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    await G().toolTap('raket');const sel=G().S.tool==='raket';await G().placeRocket(2,5);
+    return {pass:sel&&S.grid[2][5]&&S.grid[2][5].sp==='raket'&&wallet().it.raket===1&&!S.tool,detail:''};
+  });
+  await t('U25','UAT','+3 zetten tijdens een campagne-level',async()=>{
+    setWallet(0,{zetten:1});G().startLevel(1);await wait(400);const S=G().S,before=S.movesLeft;
+    await G().toolTap('zetten');await wait(50);
+    return {pass:S.movesLeft===before+3&&wallet().it.zetten===0,detail:`zetten ${before} -> ${S.movesLeft}`};
+  });
+  await t('U26','UAT','Zetten op: +3 zetten gebruiken vanuit het verliesscherm',async()=>{
+    setWallet(0,{zetten:1});G().startLevel(1);await wait(300);const S=G().S;S.movesLeft=0;G().loseLevel('moves');await wait(100);
+    cardBtn('+3 zetten gebruiken').click();await wait(400);
+    return {pass:!S.over&&S.movesLeft===3&&wallet().it.zetten===0&&$('ov').hidden,detail:'zetten '+S.movesLeft};
+  });
+  await t('N33','negatief','+3 zetten is grijs in Klassiek, ook met voorraad',async()=>{
+    setWallet(0,{zetten:2});G().startClassic();await wait(300);const b=[...document.querySelectorAll('#tools .tool')][4];
+    await G().toolTap('zetten');return {pass:b.disabled&&wallet().it.zetten===2,detail:''};
+  });
+  await t('N34','negatief','Raket op een bezet vakje kost niets',async()=>{
+    setWallet(0,{raket:1});G().startClassic();await wait(300);const S=G().S;S.grid[1][1]={color:'#ff5f7e'};
+    await G().toolTap('raket');await G().placeRocket(1,1);
+    return {pass:wallet().it.raket===1&&!S.grid[1][1].sp,detail:''};
   });
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

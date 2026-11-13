@@ -1043,7 +1043,7 @@ function show(name){screen=name;['menu','game','mp','lb','camp'].forEach(s=>$('s
   if(name!=='game'){$('tutbox').hidden=true;$('hint').hidden=false;$('tools').hidden=true;}
   if(name!=='camp'&&!(name==='game'&&S&&S.mode==='camp'))setMapTheme(null);
   if(name==='camp')renderCamp();
-  if(name==='menu'){renderMenu();if(NET.db)syncWallet();} if(name==='mp')renderMP(); if(name==='lb')openLB(lbTab); else closeLB();}
+  if(name==='menu'){renderMenu();syncIfStale();} if(name==='mp')renderMP(); if(name==='lb')openLB(lbTab); else closeLB();}
 document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{if(screen==='camp'&&campMap!=null){campMap=null;renderCamp();}else show('menu');});
 
 /* ================= game state ================= */
@@ -1428,10 +1428,11 @@ function levelIntro(n){
 }
 async function startLevel(n,pick={}){
   audio();setMapTheme(mapOf(n));newGame({mode:'camp',lvl:makeLevel(n)});
-  const G=S,free=WAL.streak>=3;if(free){WAL.streak=0;saveStreak();}
+  const G=S,free=WAL.streak>=3;
   // boosters are used on the server first; the board waits a moment (S.lock) so nothing is played meanwhile
   if(free||pick.raket||pick.zetten)S.lock=true;
-  await startRocket(free,pick);
+  // the free streak rocket is only used up when it was really placed (a full board keeps it for the next level)
+  if(await startRocket(free,pick)&&free){WAL.streak=0;saveStreak();}
   if(pick.zetten&&G===S&&await useItem('zetten')&&G===S){S.movesLeft+=3;hud();pop(tx('+3 zetten!'),W/2,PAD+BOARD/2,'callout',null,null,now()+300);}
   if(G===S)S.lock=false;
 }
@@ -1460,19 +1461,21 @@ function medalCard(m,fresh,next){
   confetti(100);sfx.cheer(3);showCard(nodes);
 }
 async function finishLevel(){
-  S.tool=null;renderTools();
+  S.tool=null;renderTools();const G=S;
   const lv=S.lvl,stars=levelStars(lv,S.score),prev=CAMP.s[lv.n]||0,wasOpen=lv.boss&&lv.m+1<MAPS.length&&mapOpen(lv.m+1);
   campSave(lv.n,stars,S.score);
   const fresh=campProgress(lv.m,freshStats());
   WAL.streak=Math.min(3,WAL.streak+1);saveStreak();
   // coins and the gift box after every 3rd level come from the server (full coins for a first win or more stars)
   const er=await earnLevel(lv.n,stars),chest=er&&er.chest||null,coins=er?er.gain-(chest&&chest.c||0):0;
+  if(G!==S||screen!=='game')return; // the player left during the server call: progress and coins are saved already
   const big=el('div','big','0');countUp(big,S.score);
   const sr=starRow(0,'stars-big');
   [...sr.children].forEach((s,i)=>{if(i<stars)setTimeout(()=>{s.classList.add('on','popin');sfx.make();},400+i*350);});
   const nodes=[el('h2',null,lv.boss?tx('Eindbaas verslagen!'):tx('Level {n} gehaald!',{n:lv.i+1})),sr,big];
   nodes.push(el('p',null,stars<3?tx('★★ vanaf {a} · ★★★ vanaf {b}',{a:fmt(lv.stars[0]),b:fmt(lv.stars[1])}):(prev<3?tx('Alle sterren!'):tx('Perfect gespeeld.'))));
-  nodes.push(el('p','coinline',(er?tx('+{n} munten',{n:coins})+' 🪙':tx('Geen verbinding: geen munten'))+(WAL.streak>0?' · 🔥 '+WAL.streak+'/3':'')));
+  const coinTxt=!er?tx('Geen verbinding: geen munten'):coins>0?tx('+{n} munten',{n:coins})+' 🪙':'';
+  if(coinTxt||WAL.streak>0)nodes.push(el('p','coinline',coinTxt+(coinTxt&&WAL.streak>0?' · ':'')+(WAL.streak>0?'🔥 '+WAL.streak+'/3':'')));
   if(lv.boss&&!wasOpen&&lv.m+1<MAPS.length)nodes.push(el('div','tipbox',tx('Nieuwe kaart open: {x}!',{x:tx(MAPS[lv.m+1].name)})));
   const go=fn=>()=>{closeCard();afterGame(fn);};
   if(lv.n<LEVELS)nodes.push(btn('primary',lv.boss?tx('Naar {x}',{x:tx(MAPS[lv.m+1].name)}):tx('Volgend level'),go(()=>{if(lv.boss){campMap=lv.m+1;show('camp');}levelIntro(lv.n+1);})));
@@ -1732,7 +1735,8 @@ function endGame(){
     saveScore(S.score);
     const big=el('div','big','0');countUp(big,S.score);
     // coins for this game, paid by the server (a rescued game only pays the extra part)
-    const er=await earnClassic(S.gameId,S.score),coins=er?er.gain:0;
+    const G=S,er=await earnClassic(S.gameId,S.score),coins=er?er.gain:0;
+    if(G!==S||screen!=='game')return; // the player left during the server call
     const nodes=[el('h2',null,S.recordHit?tx('Nieuw record!'):tx('Geen plek meer')),big,el('p',null,tx('Je record: {n}',{n:fmt(S.best)}))];
     // so close: show how far the record is, to tempt one more game
     if(!S.recordHit&&S.best>S.score)nodes.push(el('div','tipbox',tx('Nog {n} punten tot je record!',{n:fmt(S.best-S.score)})));
@@ -2125,14 +2129,14 @@ const ITEMS={
   raket:{ico:'🚀',name:'Start-Raket',x:'Begin een level met een Raket op het bord.',price:80},
   zetten:{ico:'➕',name:'+3 zetten',x:'Begin een level met 3 extra zetten.',price:90}};
 const TOOLS=['hamer','draai','dobbel'], BOOSTS=['raket','zetten'];
-try{localStorage.removeItem('blockers-wallet');}catch(e){} // the wallet of the first 0.7 test version lived on the device
+try{localStorage.removeItem('blockers-wallet');localStorage.removeItem('blockers-nick');}catch(e){} // the old device-only wallet and name // the wallet of the first 0.7 test version lived on the device
 const WAL={ok:false,busy:false,c:0,it:{},wheelFree:false,extra:0,extraOk:false,adAt:0,adsLeft:0,resetAt:0,chests:{},
   streak:Math.min(3,Math.max(0,Math.floor(Number(store.get('blockers-streak'))||0)))};
 const saveStreak=()=>store.set('blockers-streak',String(WAL.streak));
 const wcall=(fn,args)=>API.call(fn,args||{},false,'gridquake');
 function applyWallet(w){
   if(!w||typeof w!=='object'||w.coins==null)return;
-  Object.assign(WAL,{ok:true,c:w.coins|0,it:w.items||{},wheelFree:!!w.wheel_free,extra:w.extra|0,extraOk:!!w.extra_possible,
+  Object.assign(WAL,{ok:true,syncAt:Date.now(),c:w.coins|0,it:w.items||{},wheelFree:!!w.wheel_free,extra:w.extra|0,extraOk:!!w.extra_possible,
     adAt:Date.now()+(w.ad_wait|0)*1000,adsLeft:w.ads_left|0,resetAt:Date.now()+(w.reset_in|0)*1000,chests:w.chests||{}});
   renderCoins();renderTools();
 }
@@ -2141,9 +2145,15 @@ async function syncWallet(){
   try{applyWallet(await wcall('wallet'));return WAL.ok;}catch(e){WAL.ok=false;renderCoins();return false;}
 }
 const have=k=>WAL.ok?(WAL.it[k]|0):0;
+// the wallet is fetched again after 5 minutes, after midnight (new free spin) or when it never loaded
+function syncIfStale(){if(NET.db&&(!WAL.ok||Date.now()-(WAL.syncAt||0)>300000||Date.now()>=WAL.resetAt))syncWallet();}
 function noNet(){sfx.warn();
-  if(screen==='game'&&ov.hidden)pop(tx('Geen verbinding'),W/2,PAD+BOARD/2,'info','#e0203a',18);
+  if(!ov.hidden){let m=card.querySelector('.netmsg');if(!m){m=el('p','note err netmsg');card.insertBefore(m,card.children[1]||null);}
+    m.textContent=tx('Geen verbinding. Probeer het straks opnieuw.');return;}
+  if(screen==='game')pop(tx('Geen verbinding'),W/2,PAD+BOARD/2,'info','#e0203a',18);
   else showCard([el('h2',null,tx('Geen verbinding')),el('p',null,tx('Munten, de winkel en het dagrad werken alleen met internet. Probeer het straks opnieuw.')),btn('primary',tx('Sluiten'),closeCard)]);}
+// uses a helper during a game: the board is locked during the server call, so the target cannot change meanwhile
+async function useOnBoard(k){const G=S,was=S.lock;S.lock=true;try{return await useItem(k)&&G===S;}finally{if(G===S)S.lock=was;}}
 // uses one helper on the server; true when it was really used
 async function useItem(k){
   if(!WAL.ok||!have(k)||WAL.busy)return false;WAL.busy=true;
@@ -2175,7 +2185,8 @@ async function claimAd(kind,before){
 }
 function coinVideo(){
   if(!WAL.ok)return noNet();
-  if(WAL.adAt>Date.now()||WAL.adsLeft<=0)return;
+  if(WAL.adAt>Date.now()||WAL.adsLeft<=0||Date.now()-(WAL.adTap||0)<8000)return;
+  WAL.adTap=Date.now();
   const before=WAL.c;
   rewardAd(tx('Gratis munten'),async()=>{
     const st=await claimAd('coins',before);
@@ -2187,8 +2198,9 @@ function coinVideo(){
 }
 $('go-ad').onclick=()=>{audio();coinVideo();};
 // coins for a finished game: the server checks and pays (null without a connection)
-async function earnLevel(n,stars){try{const r=await wcall('earn_level',{p_level:n,p_stars:stars});applyWallet(r&&r.wallet);return r&&r.status==='ok'?r:null;}catch(e){return null;}}
-async function earnClassic(game,score){try{const r=await wcall('earn_classic',{p_game:game,p_score:Math.round(score)});applyWallet(r&&r.wallet);return r&&r.status==='ok'?r:null;}catch(e){return null;}}
+// a limit (too many claims) is an answer too: no coins, but no connection problem either
+async function earnLevel(n,stars){try{const r=await wcall('earn_level',{p_level:n,p_stars:stars});applyWallet(r&&r.wallet);return r&&(r.status==='ok'||r.status==='limit')?r:null;}catch(e){return null;}}
+async function earnClassic(game,score){try{const r=await wcall('earn_classic',{p_game:game,p_score:Math.round(score)});applyWallet(r&&r.wallet);return r&&(r.status==='ok'||r.status==='limit')?r:null;}catch(e){return null;}}
 
 function shopCard(back){
   if(!WAL.ok){syncWallet().then(ok=>ok?shopCard(back):noNet());return;}
@@ -2265,7 +2277,7 @@ async function toolTap(k){
   if(!S||S.over||S.lock||!ov.hidden||WAL.busy)return;audio();
   if(!WAL.ok)return noNet();
   if(!have(k)){S.tool=null;renderTools();return shopCard();}
-  if(k==='dobbel'){const G=S;if(!await useItem(k)||G!==S)return;S.tool=null;rerollLeft();sfx.make();buzz(20);pop(tx('Nieuwe blokken!'),W/2,TRAY_Y-8,'info','#e07c00',20);renderTools();return;}
+  if(k==='dobbel'){if(!await useOnBoard(k))return;S.tool=null;rerollLeft();sfx.make();buzz(20);pop(tx('Nieuwe blokken!'),W/2,TRAY_Y-8,'info','#e07c00',20);renderTools();return;}
   S.tool=S.tool===k?null:k;renderTools();
   if(S.tool)pop(tx(k==='hamer'?'Tik op een vakje om het te wissen':'Tik op een blok in je lade'),W/2,k==='hamer'?PAD+BOARD/2:TRAY_Y-8,'info','#e07c00',17);
 }
@@ -2277,13 +2289,13 @@ function rerollLeft(){
   S.trayT=now();
 }
 async function rotatePiece(i){
-  const G=S,p=S.tray[i];if(!p||!await useItem('draai')||G!==S||S.tray[i]!==p)return;
+  const p=S.tray[i];if(!p||!await useOnBoard('draai')||S.tray[i]!==p)return;
   p.cells=p.cells.map(([a,b])=>[b,p.h-1-a]);[p.w,p.h]=[p.h,p.w];
   S.tool=null;S.trayT=now();sfx.pick();buzz(15);renderTools();
 }
 async function hammer(r,c){
   const x=S.grid[r][c];if(!x||x.hole||x.chest||x.crystal){sfx.warn();return;}
-  const G=S;if(!await useItem('hamer')||G!==S||S.grid[r][c]!==x)return;S.tool=null;
+  if(!await useOnBoard('hamer')||S.grid[r][c]!==x)return;S.tool=null;
   const T=now(),cx=PAD+c*CS+CS/2,cy=PAD+r*CS+CS/2,res=resolveG(S,[{a:r,b:c}]);
   let end=animateEvents(res,T,cx,cy),gain=(res.detScore+res.broken*50)*PTS;
   if(S.lvl&&S.lvl.crystals){const cr=dropCrystals(S);if(cr){gain+=cr.got.length*CRYSTAL_PTS*PTS;end=crystalFx(cr,end-150);}}
@@ -2484,7 +2496,7 @@ function settingsCard(){
     hd.setAttribute('aria-expanded',String(setOpen===id));hd.append(el('span','ai',icon),el('span','at',title),el('span','v'+([...value].length<=6?' short':''),value),el('span','chev','›'));
     hd.onclick=()=>{setOpen=setOpen===id?null:id;settingsCard();};box.append(hd);
     if(setOpen===id){const bd=el('div','acc-b');bd.append(...body);box.append(bd);}return box;};
-  const nick=NET.player?.nick||store.get('blockers-nick')||'–',th=THEMES.find(t=>t.id===themeId);
+  const nick=NET.player?.nick||'–',th=THEMES.find(t=>t.id===themeId);
   const nodes=[el('h2',null,tx('Instellingen')),
     sec('lang','🌐',tx('Taal'),(LANGS.find(([c])=>c===LANG)||['',''])[1],[langRow(settingsCard)]),
     sec('theme','🎨',tx('Thema'),th.icon+' '+tx(th.name),[seg]),

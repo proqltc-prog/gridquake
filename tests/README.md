@@ -14,7 +14,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 
 ## Test run 0.7.0 (13 November 2026)
 
-47 of 47 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
+53 of 53 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
 
 | ID | Type | Test | Result |
 |---|---|---|---|
@@ -65,6 +65,12 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | N24 | negative | Username rules in the app (same as the server) | pass |
 | N25 | negative | Leaderboard without a name: no name button, only a pointer to the menu | pass |
 | N26 | negative | Coins stored on the device are ignored | pass |
+| N27 | negative | A level won right after another: no coins, but no "no connection" message | pass |
+| N28 | negative | Connection lost on the game-over card: the card stays, with a message | pass |
+| N29 | negative | The board is locked while the hammer is used on the server | pass |
+| N30 | negative | Double tap on the coin video starts one video | pass |
+| N31 | negative | The end card no longer appears after the player left | pass |
+| N32 | negative | Settings show no old device-only name | pass |
 | M3 | UAT (manual) | Very first start: straight into exercise 1, no questions | pass |
 | M4 | security (manual) | Without `?test=1` the test hook does not exist | pass |
 
@@ -73,6 +79,8 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 - All 200 existing levels are unchanged (compared with version 0.6: identical layouts, moves and star limits; the master test only moved to levels 201-220).
 - The bot is calibrated on maps 1-4: its moves and star limits match the existing tuning within 3% on average (`node scripts/tune-bot.mjs calibrate 1-80`).
 - Check on 48 other games per level (`node scripts/tune-bot.mjs verify 181-200`): the bot wins 54-85% of the crystal levels within the moves (map 1: 23-94%), ★★ in 38% and ★★★ in 18% of the games on average (map 1: 39% and 18%).
+
+Fixed after the review of pull request 1: unlimited Classic coins with new game ids, level coins without playing (now limits per time and per day, `gq11`), video rewards without confirmation now end on a fixed date, and six smaller app issues (N27-N32 and the free streak rocket on a full board).
 
 Fixed during testing: a Starter Rocket was used up on a full board; damaged wallet data was not cleaned; replaying an easy level paid full coins every time.
 

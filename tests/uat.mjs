@@ -19,10 +19,10 @@ const F={};const day=()=>new Date().toDateString();
 const PRICE={hamer:60,draai:40,dobbel:50,raket:80,zetten:90};
 const SEGS=[{c:20},{it:'hamer'},{c:50},{it:'draai'},{c:10},{it:'dobbel'},{c:100},{it:'zetten'},{c:30},{it:'raket'}];
 function resetFake(o={}){for(const k in F)delete F[k];Object.assign(F,{coins:100,items:{hamer:1,draai:1,dobbel:1},wheelDay:null,extraDay:null,extra:0,adAt:0,adDay:null,adViews:0,
-  earned:{},chests:{},cg:null,cp:0,replayAt:0,unverified:true,offline:false,calls:[]},o);}
+  earned:{},chests:{},cg:null,cp:0,replayAt:0,unverified:true,offline:false,calls:[],levelAt:0,classicAt:0,delay:0},o);}
 function fj(){const d=day();return {coins:F.coins,items:{...F.items},wheel_free:F.wheelDay!==d,extra:F.extraDay===d?F.extra:0,extra_possible:F.extraDay!==d,
   ad_wait:Math.max(0,Math.ceil((F.adAt+1800e3-Date.now())/1000)),ads_left:Math.max(0,10-(F.adDay===d?F.adViews:0)),reset_in:3600,chests:{...F.chests}};}
-async function fake(name,a={}){F.calls.push(name);if(F.offline)throw new Error('offline');const d=day();
+async function fake(name,a={}){F.calls.push(name);if(F.delay)await wait(F.delay);if(F.offline)throw new Error('offline');const d=day();
   if(name==='wallet')return fj();
   if(name==='buy'){const p=PRICE[a.p_item];if(p==null)return {status:'unknown'};if(F.coins<p)return {status:'poor',wallet:fj()};F.coins-=p;F.items[a.p_item]=(F.items[a.p_item]|0)+1;return {status:'ok',wallet:fj()};}
   if(name==='use_item'){if(!(F.items[a.p_item]>0))return {status:'none',wallet:fj()};F.items[a.p_item]--;return {status:'used',wallet:fj()};}
@@ -32,11 +32,13 @@ async function fake(name,a={}){F.calls.push(name);if(F.offline)throw new Error('
     if(a.p_kind==='coins'){if(F.adDay===d&&F.adViews>=10)st='limit';else if(Date.now()-F.adAt<29*60e3)st='cooldown';else{F.coins+=100;F.adAt=Date.now();F.adViews=F.adDay===d?F.adViews+1:1;F.adDay=d;st='granted';}}
     else{if(F.wheelDay!==d)st='not_needed';else if(F.extraDay===d)st='limit';else{F.extraDay=d;F.extra=1;st='granted';}}
     return {status:st,wallet:fj()};}
-  if(name==='earn_level'){const prev=F.earned[a.p_level]|0;let gain=0,chest=null;
-    if(a.p_stars>prev){gain=(10+5*a.p_stars)-(prev?10+5*prev:0);F.earned[a.p_level]=a.p_stars;}else if(Date.now()-F.replayAt>60e3){gain=3;F.replayAt=Date.now();}
-    if(a.p_level%3===0&&!F.chests[a.p_level]){chest={c:40};gain+=40;F.chests[a.p_level]=true;}F.coins+=gain;return {status:'ok',gain,chest,wallet:fj()};}
-  if(name==='earn_classic'){const tot=Math.min(30,Math.floor(a.p_score/1500)),gain=Math.max(0,tot-(F.cg===a.p_game?F.cp:0));
-    F.coins+=gain;F.cp=F.cg===a.p_game?Math.max(F.cp,tot):tot;F.cg=a.p_game;return {status:'ok',gain,wallet:fj()};}
+  if(name==='earn_level'){const prev=F.earned[a.p_level]|0;let gain=0,chest=null,paid=false,st='ok';
+    if(a.p_stars>prev){if(Date.now()-F.levelAt<20e3)st='limit';else{gain=(10+5*a.p_stars)-(prev?10+5*prev:0);paid=!prev;F.earned[a.p_level]=a.p_stars;F.levelAt=Date.now();}}
+    else if(Date.now()-F.replayAt>60e3){gain=3;F.replayAt=Date.now();}
+    if(paid&&a.p_level%3===0&&!F.chests[a.p_level]){chest={c:40};gain+=40;F.chests[a.p_level]=true;}F.coins+=gain;return {status:st,gain,chest,wallet:fj()};}
+  if(name==='earn_classic'){const same=F.cg===a.p_game;if(!same&&Date.now()-F.classicAt<60e3)return {status:'limit',gain:0,wallet:fj()};
+    const tot=Math.min(30,Math.floor(a.p_score/1500)),gain=Math.max(0,tot-(same?F.cp:0));
+    F.coins+=gain;F.cp=same?Math.max(F.cp,tot):tot;if(!same)F.classicAt=Date.now();F.cg=a.p_game;return {status:'ok',gain,wallet:fj()};}
   throw new Error('unknown '+name);}
 let realCall=null;
 function installFake(){const api=G().API;if(!realCall)realCall=api.call;
@@ -332,6 +334,39 @@ async function runAll(){
   await t('N26','negatief','Geen munten op het toestel: oude lokale portemonnee wordt genegeerd',async()=>{
     localStorage.setItem('blockers-wallet',JSON.stringify({c:999999,it:{hamer:99}}));setWallet(5,{});
     return {pass:G().WAL.c===5&&(G().WAL.it.hamer|0)===0,detail:'munten '+G().WAL.c};
+  });
+  // ---------------- fixes after the review of pull request 1 ----------------
+  await t('N27','negatief','Level net na een ander level: geen munten, maar ook geen "Geen verbinding"',async()=>{
+    setWallet(0,{});F.levelAt=Date.now();G().CAMP.s={};G().startLevel(2);await wait(300);const S=G().S;
+    S.lvl.goals.forEach(g=>{if(g.t==='stones')S.stats.stones=g.target;if(g.t==='make')S.stats.made[g.sp]=g.target;if(g.t==='score')S.score=g.target;});
+    S.movesLeft=0;G().winLevel();await wait(2800);const txt=cardText();
+    return {pass:txt.includes('gehaald')&&!txt.includes('Geen verbinding')&&!/\+\d+ munten/.test(txt)&&wallet().c===0,detail:txt.split('\n').slice(0,4).join(' | ')};
+  });
+  await t('N28','negatief','Verbinding weg op het game-over-scherm: het scherm blijft staan met een melding',async()=>{
+    setWallet(0,{dobbel:1});G().startClassic();await wait(300);const S=G().S;S.score=1000;S.shown=1000;
+    for(let r=0;r<8;r++)for(let c=0;c<8;c++)S.grid[r][c]=(r+c)%2?{color:'#ff5f7e'}:null;S.tray=[piece([[0,0],[0,1]]),null,null];
+    G().endGame();await wait(1200);F.offline=true;cardBtn('Nieuwe blokken gebruiken').click();await wait(300);F.offline=false;
+    const txt=cardText();return {pass:!$('ov').hidden&&!!cardBtn('Opnieuw spelen')&&txt.includes('Geen verbinding')&&wallet().it.dobbel===1,detail:''};
+  });
+  await t('N29','negatief','Tijdens het gebruik van de hamer ligt het bord vast',async()=>{
+    setWallet(0,{hamer:1});G().startClassic();await wait(300);const S=G().S;emptyBoard();S.grid[3][3]={color:'#3fc6ff'};F.delay=400;
+    const p=G().hammer(3,3);await wait(150);const lockedDuring=S.lock===true;await p;F.delay=0;await wait(600);
+    return {pass:lockedDuring&&!S.grid[3][3]&&wallet().it.hamer===0&&S.lock===false,detail:'vast tijdens oproep: '+lockedDuring};
+  });
+  await t('N30','negatief','Dubbel tikken op het munten-filmpje start één filmpje',async()=>{
+    setWallet(0,{});G().show('menu');G().coinVideo();G().coinVideo();await wait(4800);close();
+    return {pass:F.calls.filter(c=>c==='ad_claim').length===1&&wallet().c===100,detail:'claims '+F.calls.filter(c=>c==='ad_claim').length};
+  });
+  await t('N31','negatief','Eindscherm verschijnt niet meer als de speler al weg is',async()=>{
+    setWallet(0,{});G().startLevel(4);await wait(300);const S=G().S;F.delay=1500;
+    S.lvl.goals.forEach(g=>{if(g.t==='stones')S.stats.stones=g.target;if(g.t==='make')S.stats.made[g.sp]=g.target;if(g.t==='score')S.score=g.target;});
+    S.movesLeft=0;G().winLevel();await wait(1900);close();G().show('menu');await wait(2500);F.delay=0;
+    return {pass:$('ov').hidden&&G().screen==='menu'&&wallet().c>0,detail:'munten wel bewaard: '+wallet().c};
+  });
+  await t('N32','negatief','Instellingen tonen geen oude naam van het toestel',async()=>{
+    const P=G().NET.player;G().NET.player=null;localStorage.setItem('blockers-nick','OudeNaam');$('settings').click();await wait(100);
+    const txt=cardText();close();G().NET.player=P;localStorage.removeItem('blockers-nick');
+    return {pass:!txt.includes('OudeNaam'),detail:''};
   });
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

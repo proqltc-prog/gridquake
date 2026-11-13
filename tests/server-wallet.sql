@@ -2,13 +2,15 @@
 -- Run in the Supabase SQL editor (project seed-and-destroy). Everything runs in one block that ends with
 -- an error on purpose: the error message holds the result and the whole block is rolled back, so the
 -- temporary test account and its data never stay in the database.
--- Expected: "SERVERTEST ok=37 fout=0" and "NAAMTEST ok=30 fout=0".
+-- Expected: "SERVERTEST ok=37 fout=0", "NAAMTEST ok=30 fout=0" and "LIMIETTEST ok=16 fout=0".
+-- Note: the setting unverified_ads of gq09 became unverified_until in gq11 (an end date); SERVERTEST sets it for its own run.
 
 do $$
 declare t uuid := gen_random_uuid(); r jsonb; o text := ''; ok int := 0; bad int := 0; c0 int;
 begin
   insert into auth.users(id, instance_id, aud, role, is_anonymous, created_at, updated_at) values (t,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',true,now(),now());
   perform set_config('request.jwt.claims', json_build_object('sub', t, 'role','authenticated')::text, true);
+  update gridquake.settings set value = to_jsonb(now() + interval '1 day') where key = 'unverified_until';
   r := gridquake.wallet(); if (r->>'coins')::int=100 and (r->'items'->>'hamer')::int=1 and (r->>'wheel_free')::bool then ok:=ok+1; else bad:=bad+1; o:=o||' S1'; end if;
   r := gridquake.buy('zetten'); if r->>'status'='ok' and (r->'wallet'->>'coins')::int=10 then ok:=ok+1; else bad:=bad+1; o:=o||' S2a'; end if;
   r := gridquake.buy('hamer'); if r->>'status'='poor' and (r->'wallet'->>'coins')::int=10 then ok:=ok+1; else bad:=bad+1; o:=o||' S2b'; end if;
@@ -33,14 +35,17 @@ begin
   update gridquake.wallets set wheel_day = wheel_day - 1, extra_day = extra_day - 1, ad_day = ad_day - 1 where player_id = t;
   r := gridquake.wallet(); if (r->>'wheel_free')::bool and (r->>'extra_possible')::bool and (r->>'ads_left')::int=10 and (r->>'reset_in')::int between 1 and 90000 then ok:=ok+1; else bad:=bad+1; o:=o||' S11'; end if;
   r := gridquake.earn_level(5, 2); if (r->>'gain')::int=20 then ok:=ok+1; else bad:=bad+1; o:=o||' S12a'; end if;
+  update gridquake.wallets set level_at = now() - interval '21 seconds' where player_id = t;
   r := gridquake.earn_level(5, 3); if (r->>'gain')::int=5 then ok:=ok+1; else bad:=bad+1; o:=o||' S12b'; end if;
   r := gridquake.earn_level(5, 3); if (r->>'gain')::int=3 then ok:=ok+1; else bad:=bad+1; o:=o||' S12c'; end if;
   r := gridquake.earn_level(5, 1); if (r->>'gain')::int=0 then ok:=ok+1; else bad:=bad+1; o:=o||' S12d'; end if;
+  update gridquake.wallets set level_at = now() - interval '21 seconds' where player_id = t;
   r := gridquake.earn_level(3, 1); if jsonb_typeof(r->'chest')='object' then ok:=ok+1; else bad:=bad+1; o:=o||' S13a'; end if;
   update gridquake.wallets set last_replay_at = null where player_id = t;
   r := gridquake.earn_level(3, 1); if jsonb_typeof(r->'chest')='null' then ok:=ok+1; else bad:=bad+1; o:=o||' S13b'; end if;
   r := gridquake.earn_level(221, 3); if r->>'status'='rejected' then ok:=ok+1; else bad:=bad+1; o:=o||' S14a'; end if;
   r := gridquake.earn_level(10, 4); if r->>'status'='rejected' then ok:=ok+1; else bad:=bad+1; o:=o||' S14b'; end if;
+  update gridquake.wallets set classic_at = null where player_id = t;
   r := gridquake.earn_classic('g1', 30000); if (r->>'gain')::int=20 then ok:=ok+1; else bad:=bad+1; o:=o||' S15a'; end if;
   r := gridquake.earn_classic('g1', 60000); if (r->>'gain')::int=10 then ok:=ok+1; else bad:=bad+1; o:=o||' S15b'; end if;
   r := gridquake.earn_classic('g1', 90000); if (r->>'gain')::int=0 then ok:=ok+1; else bad:=bad+1; o:=o||' S15c'; end if;
@@ -75,4 +80,44 @@ begin
   r := public.gq_register('Testnaam Qz','fr'); if r->>'status'='ok' then ok:=ok+1; else bad:=bad+1; o:=o||' R5'; end if;
   if (select nickname from gridquake.players where id=t)='Testnaam Qz' then ok:=ok+1; else bad:=bad+1; o:=o||' R6'; end if;
   raise exception 'NAAMTEST ok=% fout=% %', ok, bad, o;
+end $$;
+
+-- gq11: limits against scripted coin claims, and the end date of unverified videos
+do $$
+declare t uuid := gen_random_uuid(); r jsonb; o text := ''; ok int := 0; bad int := 0; i int; c0 int;
+begin
+  insert into auth.users(id, instance_id, aud, role, is_anonymous, created_at, updated_at) values (t,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',true,now(),now());
+  perform set_config('request.jwt.claims', json_build_object('sub', t, 'role','authenticated')::text, true);
+  update gridquake.settings set value = to_jsonb(now() + interval '1 day') where key = 'unverified_until';
+  r := gridquake.earn_level(1, 2); if (r->>'gain')::int=20 then ok:=ok+1; else bad:=bad+1; o:=o||' L1a'; end if;
+  r := gridquake.earn_level(2, 3); if r->>'status'='limit' and (r->>'gain')::int=0 then ok:=ok+1; else bad:=bad+1; o:=o||' L1b'; end if;
+  update gridquake.wallets set level_at = now() - interval '21 seconds' where player_id = t;
+  r := gridquake.earn_level(2, 3); if (r->>'gain')::int=25 then ok:=ok+1; else bad:=bad+1; o:=o||' L1c'; end if;
+  update gridquake.wallets set level_at = now() - interval '21 seconds' where player_id = t;
+  r := gridquake.earn_level(1, 3); if (r->>'gain')::int=5 then ok:=ok+1; else bad:=bad+1; o:=o||' L2'; end if;
+  update gridquake.wallets set level_claims = 40, level_day = gridquake.brussels_day(), level_at = now() - interval '1 hour' where player_id = t;
+  r := gridquake.earn_level(10, 3); if r->>'status'='limit' then ok:=ok+1; else bad:=bad+1; o:=o||' L3'; end if;
+  r := gridquake.earn_level(3, 1); if jsonb_typeof(r->'chest')='null' and not ((select chests from gridquake.wallets where player_id=t) ? '3') then ok:=ok+1; else bad:=bad+1; o:=o||' L4a'; end if;
+  update gridquake.wallets set level_claims = 0, level_at = now() - interval '1 hour' where player_id = t;
+  r := gridquake.earn_level(3, 1); if jsonb_typeof(r->'chest')='object' then ok:=ok+1; else bad:=bad+1; o:=o||' L4b'; end if;
+  update gridquake.wallets set level_at = now() - interval '1 hour', earned = '{}' where player_id = t;
+  c0 := (select coins from gridquake.wallets where player_id=t);
+  for i in 100..219 loop perform gridquake.earn_level(i, 3); end loop;
+  if (select coins from gridquake.wallets where player_id=t) - c0 = 25 then ok:=ok+1; else bad:=bad+1; o:=o||' L5'; end if;
+  r := gridquake.earn_classic('g1', 45000); if (r->>'gain')::int=30 then ok:=ok+1; else bad:=bad+1; o:=o||' C1a'; end if;
+  r := gridquake.earn_classic('g2', 45000); if r->>'status'='limit' and (r->>'gain')::int=0 then ok:=ok+1; else bad:=bad+1; o:=o||' C1b'; end if;
+  r := gridquake.earn_classic('g1', 45000); if (r->>'gain')::int=0 and r->>'status'='ok' then ok:=ok+1; else bad:=bad+1; o:=o||' C2'; end if;
+  update gridquake.wallets set classic_at = now() - interval '2 minutes' where player_id = t;
+  c0 := (select coins from gridquake.wallets where player_id=t);
+  for i in 1..100 loop perform gridquake.earn_classic('x'||i, 45000); end loop;
+  if (select coins from gridquake.wallets where player_id=t) - c0 = 30 then ok:=ok+1; else bad:=bad+1; o:=o||' C3'; end if;
+  update gridquake.wallets set classic_coins = 290, classic_day = gridquake.brussels_day(), classic_at = now() - interval '2 minutes' where player_id = t;
+  r := gridquake.earn_classic('g9', 45000); if (r->>'gain')::int=10 then ok:=ok+1; else bad:=bad+1; o:=o||' C4'; end if;
+  r := gridquake.ad_claim('coins'); if r->>'status'='granted' then ok:=ok+1; else bad:=bad+1; o:=o||' A1a'; end if;
+  update gridquake.settings set value = to_jsonb(now() - interval '1 second') where key = 'unverified_until';
+  update gridquake.wallets set last_ad_at = null where player_id = t;
+  r := gridquake.ad_claim('coins'); if r->>'status'='ssv' then ok:=ok+1; else bad:=bad+1; o:=o||' A1b'; end if;
+  update gridquake.settings set value = 'null' where key = 'unverified_until';
+  r := gridquake.ad_claim('coins'); if r->>'status'='ssv' then ok:=ok+1; else bad:=bad+1; o:=o||' A1c'; end if;
+  raise exception 'LIMIETTEST ok=% fout=% %', ok, bad, o;
 end $$;

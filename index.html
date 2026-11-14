@@ -252,7 +252,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
 .shoprow .si{font-size:26px;flex:none}.shoprow .st{flex:1;min-width:0;font-size:13px;color:var(--muted)}.shoprow .st b{display:block;color:var(--fg);font-size:15px}
 .shoprow .own{font-weight:900;font-size:13px;color:var(--muted);flex:none}
 .wheelwrap{position:relative;width:240px;height:240px;margin:6px auto}
-.wheelwrap canvas{width:240px;height:240px}
+.wheelwrap canvas{width:240px;height:240px;display:block}
+.wheelclip{width:240px;height:240px;border-radius:50%;overflow:hidden}
 .wheelwrap .pin{position:absolute;left:50%;top:-6px;transform:translateX(-50%);font-size:26px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}
 .boosts{display:flex;flex-direction:column;gap:6px}
 .boost{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:8px 10px;font-weight:800;text-align:left;border:2px solid transparent}
@@ -969,19 +970,19 @@ const THEMES=[
  {id:'vrolijk',name:'Light',icon:'☀️',base:'light',calm:true,meta:'#f1f6fd',vars:{},
   pal:{bgA:'#ffffff',bgB:'#f5f8fd',frame:'rgba(42,37,80,.08)',cell:'#e9eef7',cellHi:'rgba(42,37,80,.03)',slot:'rgba(255,255,255,.75)',shadow:'rgba(70,90,160,.22)'}},
  {id:'donker',name:'Dark',icon:'🌙',base:'dark',calm:true,meta:'#151a2e',vars:{},
-  pal:{bgA:'#232a45',bgB:'#1c2239',frame:'rgba(255,255,255,.08)',cell:'#2c3452',cellHi:'rgba(255,255,255,.03)',slot:'rgba(255,255,255,.06)',shadow:'rgba(0,0,0,.45)'}},
+  pal:{bgA:'#2c3557',bgB:'#252c4b',frame:'rgba(255,255,255,.16)',cell:'#363f66',cellHi:'rgba(255,255,255,.03)',slot:'rgba(255,255,255,.06)',shadow:'rgba(0,0,0,.45)'}},
  {id:'zon',name:'Zonsondergang',icon:'🌅',base:'light',fx:'motes',heat:'255,122,61',meta:'#ffe3d3',
   vars:{'--bg':'#ffe3d3','--glowA':'#ffc2a2','--glowB':'#ffb0cf','--soft':'#ffe0cf','--line':'#f2c3ab','--surface':'#fff8f3','--panel':'#fff8f3','--panel2':'#fff8f3'},
-  pal:{bgA:'#fff3ea',bgB:'#ffe2d2',frame:'rgba(200,90,50,.2)',cell:'#ffdcc9',cellHi:'rgba(255,255,255,.4)',slot:'rgba(255,255,255,.6)',shadow:'rgba(200,90,60,.3)'}},
+  pal:{bgA:'#fffaf6',bgB:'#fff1e8',frame:'rgba(200,90,50,.28)',cell:'#ffe2d2',cellHi:'rgba(255,255,255,.4)',slot:'rgba(255,255,255,.6)',shadow:'rgba(200,90,60,.3)'}},
  {id:'diepzee',name:'Diepzee',icon:'🐠',base:'dark',fx:'bubbles',heat:'63,224,192',meta:'#062a33',
   vars:{'--bg':'#062a33','--glowA':'#0b4f5c','--glowB':'#123b6b','--panel':'#0c3a45','--panel2':'#0c3a45','--surface':'#0e4350','--soft':'#13505e','--line':'#1d6573'},
-  pal:{bgA:'#0f4b58',bgB:'#0a3a46',frame:'rgba(120,230,220,.2)',cell:'#125869',cellHi:'rgba(255,255,255,.05)',slot:'rgba(255,255,255,.07)',shadow:'rgba(0,0,0,.45)'}},
+  pal:{bgA:'#156372',bgB:'#105361',frame:'rgba(120,230,220,.35)',cell:'#1a7184',cellHi:'rgba(255,255,255,.05)',slot:'rgba(255,255,255,.07)',shadow:'rgba(0,0,0,.45)'}},
  {id:'ruimte',name:'Ruimte',icon:'🪐',base:'dark',fx:'stars',heat:'167,123,255',meta:'#0b0d24',
   vars:{'--bg':'#0b0d24','--glowA':'#1b1f52','--glowB':'#3a1d4f','--panel':'#161a3d','--panel2':'#161a3d','--surface':'#191e45','--soft':'#232a5a','--line':'#2f3770'},
-  pal:{bgA:'#1c2152',bgB:'#141840',frame:'rgba(170,160,255,.2)',cell:'#242a62',cellHi:'rgba(255,255,255,.04)',slot:'rgba(255,255,255,.06)',shadow:'rgba(0,0,0,.5)'}},
+  pal:{bgA:'#28307a',bgB:'#212868',frame:'rgba(170,160,255,.38)',cell:'#313a8a',cellHi:'rgba(255,255,255,.04)',slot:'rgba(255,255,255,.06)',shadow:'rgba(0,0,0,.5)'}},
  {id:'neon',name:'Neonnacht',icon:'🎮',base:'dark',fx:'neon',heat:'255,63,208',meta:'#120a1f',
   vars:{'--bg':'#120a1f','--glowA':'#3a0d4a','--glowB':'#0b3a4a','--panel':'#1c1030','--panel2':'#1c1030','--surface':'#201236','--soft':'#2b1846','--line':'#4a2a70'},
-  pal:{bgA:'#1e1135',bgB:'#150b26',frame:'rgba(255,80,220,.4)',cell:'#251642',cellHi:'rgba(120,240,255,.05)',slot:'rgba(255,255,255,.05)',shadow:'rgba(255,60,200,.25)'}}];
+  pal:{bgA:'#2d1a50',bgB:'#251443',frame:'rgba(255,80,220,.55)',cell:'#38225f',cellHi:'rgba(120,240,255,.05)',slot:'rgba(255,255,255,.05)',shadow:'rgba(255,60,200,.25)'}}];
 // new players start with Zonsondergang; a saved choice is kept
 let themeId=(()=>{const t=store.get('blockers-theme');return THEMES.some(x=>x.id===t)?t:'zon';})();
 const curTheme=()=>THEMES.find(x=>x.id===themeId)||THEMES[0];
@@ -2349,7 +2350,8 @@ function wheelCard(){
     else{g.font='46px sans-serif';g.fillText(ITEMS[w.it].ico,160,0);}
     g.restore();});
   g.beginPath();g.arc(240,240,40,0,7);g.fillStyle='#fff';g.fill();g.lineWidth=6;g.strokeStyle='#ffb020';g.stroke();
-  const wrap=el('div','wheelwrap');wrap.append(wc,el('span','pin','▼'));
+  // the turning canvas stays inside its own circle, so the card never gets a scroll bar while it spins
+  const wrap=el('div','wheelwrap'),clip=el('div','wheelclip');clip.append(wc);wrap.append(clip,el('span','pin','▼'));
   const canSpin=()=>WAL.wheelFree||WAL.extra>0;
   const waitText=()=>tx('Gratis draaien kan weer om middernacht (over {t}).',{t:clock(WAL.resetAt-Date.now())});
   const res=el('p','gtext',WAL.wheelFree?tx('Eén keer per dag gratis draaien.'):WAL.extra>0?tx('Je extra draai staat klaar!'):waitText());

@@ -86,8 +86,10 @@ async function runAll(){
   });
   await t('U3','UAT','Winkel: kopen verlaagt munten en verhoogt het hulpmiddel',async()=>{
     setWallet(100,{});G().shopCard();await wait(50);
-    [...document.querySelectorAll('#ovcard .shoprow')].find(r=>r.innerText.includes('Draaien')).querySelector('button').click();await wait(50);
-    const w=wallet();return {pass:w.c===60&&w.it.draai===1,detail:`munten ${w.c}, draaien ${w.it.draai}`};
+    const row=[...document.querySelectorAll('#ovcard .shoprow')].find(r=>r.innerText.includes('Draaien'));
+    const label=row.querySelector('button').innerText;row.querySelector('button').click();await wait(80);
+    const still=row.isConnected,count=row.querySelector('.own').textContent,coins=document.querySelector('#ovcard .coinbig').textContent;
+    const w=wallet();return {pass:w.c===60&&w.it.draai===1&&still&&count==='1'&&coins.includes('60')&&label.includes('Koop'),detail:`munten ${w.c}, draaien ${w.it.draai}, teller ${count}`};
   });
   await t('U4','UAT','Klassiek: hulpbalk zichtbaar, geen power-blokken bij 2 lijnen',async()=>{
     setWallet(0,{hamer:1,draai:1,dobbel:1});G().startClassic();await wait(300);
@@ -391,7 +393,7 @@ async function runAll(){
     setWallet(0,{hart:1});G().startLevel(1);await wait(300);const S=G().S;S.movesLeft=0;G().loseLevel('moves');await wait(100);
     const btns=[...document.querySelectorAll('#ovcard button')].map(b=>b.textContent);cardBtn('hartje').click();await wait(500);
     const ok=!S.over&&S.movesLeft===5&&wallet().it.hart===0&&$('ov').hidden;
-    S.movesLeft=0;G().loseLevel('moves');await wait(100);const heartOff=cardBtn('hartje').disabled;cardBtn('Menu').click();await wait(400);
+    S.movesLeft=0;G().loseLevel('moves');await wait(100);const heartOff=cardBtn('❤️').disabled;cardBtn('Menu').click();await wait(400);
     return {pass:btns.length===4&&ok&&heartOff&&G().screen==='menu',detail:btns.join(' | ')};
   });
   await t('N33','negatief','Hartje is een teller (menu en spel), geen knop tussen de hulpmiddelen; apart in de winkel',async()=>{
@@ -447,20 +449,50 @@ async function runAll(){
     const shown=!$('combo').hidden&&$('combo').textContent.startsWith('×');S.over=true;G().show('menu');
     return {pass:off.every(x=>x<=2)&&hiddenAtStart&&shown,detail:'afwijking '+off.map(x=>Math.round(x)).join('/')+' px'};
   });
-  await t('U31','UAT','Combo-vuur: bij combo 8 een melding, een gloeiende balk en een gratis Raket',async()=>{
+  await t('U31','UAT','Volle combo-balk: FRENZY!, een gloeiende balk en een gratis Raket bij de hulpmiddelen',async()=>{
     close();setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
     for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=7;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
     G().place(0,0,7);await wait(200);const burning=document.querySelector('#s-game .meter').classList.contains('fire');
-    await wait(1400);const said=G().pops.includes('COMBO-VUUR!'),rocket=S.grid[3][3]&&S.grid[3][3].sp==='raket';
+    await wait(1400);const said=G().pops.includes('FRENZY!'),onBoard=S.grid.flat().some(x=>x&&x.sp==='raket');
+    const btn=[...document.querySelectorAll('#tools .tool')].find(b=>b.textContent.includes('🚀'));
+    const shown=!!btn&&!btn.disabled&&btn.querySelector('.tn').textContent==='1';
+    await G().toolTap('raket');await G().placeRocket(2,5);const used=S.grid[2][5]&&S.grid[2][5].sp==='raket'&&S.freeRockets===0&&wallet().it.raket===undefined;
     S.combo=0;G().S.over=true;G().show('menu');
-    return {pass:burning&&said&&rocket,detail:`balk ${burning}, melding ${said}, raket ${!!rocket}`};
+    return {pass:burning&&said&&!onBoard&&shown&&used,detail:`balk ${burning}, melding ${said}, knop ${shown}, gebruikt ${!!used}`};
+  });
+  await t('N38','negatief','Een gratis Raket geldt alleen voor dat spel: weg in een nieuw spel, nooit in de portemonnee',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(300);let S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=7;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
+    G().place(0,0,7);await wait(1600);const had=S.freeRockets===1;S.over=true;G().show('menu');
+    G().startClassic();await wait(300);S=G().S;
+    const btn=[...document.querySelectorAll('#tools .tool')].find(b=>b.textContent.includes('🚀'));
+    const gone=!S.freeRockets&&btn.disabled&&!wallet().it.raket;S.over=true;G().show('menu');
+    return {pass:had&&gone,detail:''};
   });
   await t('N37','negatief','Geen combo-vuur bij combo 7, en de balk brandt niet',async()=>{
     close();setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
     for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=6;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
     G().place(0,0,7);await wait(1600);const burning=document.querySelector('#s-game .meter').classList.contains('fire');
     const rockets=S.grid.flat().filter(x=>x&&x.sp==='raket').length;S.over=true;G().show('menu');
-    return {pass:!burning&&rockets===0&&!G().pops.includes('COMBO-VUUR!'),detail:''};
+    return {pass:!burning&&rockets===0&&!G().pops.includes('FRENZY!'),detail:''};
+  });
+  await t('N39','negatief','Eigen hartje maximaal 1 keer per spel',async()=>{
+    setWallet(0,{hart:2});G().startClassic();await wait(300);const S=G().S;gameOverBoard(S);G().endGame();await wait(1200);
+    cardBtn('hartje').click();await wait(500);const first=!S.over&&wallet().it.hart===1;
+    gameOverBoard(S);G().endGame();await wait(1200);const b=cardBtn('❤️'),off=b.disabled&&b.textContent.includes('al gebruikt');b.click();await wait(300);
+    const kept=wallet().it.hart===1&&S.over;cardBtn('Menu').click();await wait(300);
+    return {pass:first&&off&&kept,detail:b.textContent};
+  });
+  await t('U32','UAT','Instellingen openen altijd met alle onderdelen dicht',async()=>{
+    G().show('menu');$('go-set').click();await wait(50);document.querySelector('#ovcard .acc-h').click();await wait(50);
+    const opened=!!document.querySelector('#ovcard .acc.open');close();await wait(50);$('go-set').click();await wait(50);
+    const shut=!document.querySelector('#ovcard .acc.open');close();
+    return {pass:opened&&shut,detail:''};
+  });
+  await t('U33','UAT','Terug- en sluitknoppen zijn groot genoeg (minstens 40 px)',async()=>{
+    const sz=[];G().show('camp');await wait(50);sz.push(document.querySelector('#s-camp [data-back]').getBoundingClientRect());
+    G().startClassic();await wait(300);sz.push($('g-back').getBoundingClientRect());G().S.over=true;G().show('menu');
+    return {pass:sz.every(r=>r.width>=40&&r.height>=40),detail:sz.map(r=>Math.round(r.width)+'×'+Math.round(r.height)).join(', ')};
   });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');

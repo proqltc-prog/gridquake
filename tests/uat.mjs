@@ -431,6 +431,12 @@ async function runAll(){
     await pickTheme(2);G().startClassic();await wait(200);G().fx.target=.8;G().S.over=true;G().show('menu');
     return {pass:G().fx.target===0&&G().fx.kind==='motes',detail:''};
   });
+  await t('U29','UAT','Menu: titel alleen en groot; dagrad, winkel en instellingen op de muntenrij; in het spel weer geluid en instellingen bovenaan',async()=>{
+    close();G().show('menu');await wait(50);const hb=getComputedStyle(document.querySelector('header .hbtns')).display,big=parseFloat(getComputedStyle(document.querySelector('.logo')).fontSize);
+    const row=['go-ad','go-wheel','go-shop','go-set'].every(id=>$(id).closest('.wallet'));$('go-set').click();await wait(100);const settings=cardText().includes('Instellingen');close();
+    G().startClassic();await wait(200);const hbGame=getComputedStyle(document.querySelector('header .hbtns')).display,small=parseFloat(getComputedStyle(document.querySelector('.logo')).fontSize);G().S.over=true;G().show('menu');
+    return {pass:hb==='none'&&big>small&&row&&settings&&hbGame!=='none',detail:`titel ${big}px / ${small}px`};
+  });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

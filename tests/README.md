@@ -14,7 +14,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 
 ## Test run 0.7.0 (13 November 2026)
 
-63 of 63 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
+64 of 64 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
 
 | ID | Type | Test | Result |
 |---|---|---|---|
@@ -81,6 +81,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | U28 | UAT | A combo makes the background glow in a lively theme | pass |
 | N35 | negative | Light and Dark: no moving background and no combo glow | pass |
 | N36 | negative | No glow outside a game | pass |
+| U29 | UAT | Menu: title alone and big; wheel, shop and settings on the coin row; sound and settings back on top in a game | pass |
 | M3 | UAT (manual) | Very first start: straight into exercise 1, no questions | pass |
 | M4 | security (manual) | Without `?test=1` the test hook does not exist | pass |
 

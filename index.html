@@ -27,6 +27,9 @@ body{margin:0;color:var(--fg);font-family:var(--body);
 #bgfx{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
 .app{position:relative;z-index:1;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding-block:12px;min-height:100%;box-sizing:border-box}
 header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+body.on-menu header{justify-content:center;padding-block:4px}
+body.on-menu header .hbtns{display:none}
+body.on-menu .logo{font-size:44px}
 .logo{font-family:var(--display);font-weight:400;font-size:28px;margin:0;letter-spacing:.02em;
   background:linear-gradient(180deg,#fff3c4 0,var(--accent) 45%,#ff8a3d 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 3px 0 #c45a17)}
@@ -210,7 +213,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
 .wallet{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
 .wallet .pill{white-space:nowrap;padding:6px 9px;font-size:13px;min-width:0}
 /* the wheel and shop buttons are just an icon (their name is the label for screen readers and the tooltip) */
-.wallet .wbtn{padding:5px 10px;font-size:19px;line-height:1.2}
+.wallet .wbtn{width:38px;height:34px;padding:0;display:inline-grid;place-items:center;font-size:18px;line-height:1;flex:none}
+.wallet .wbtn svg{width:18px;height:18px}
 .big.coinbig{font-size:32px;margin:0}
 .coinline{font-weight:900;color:#b7791f;margin:0}
 .coins{font-weight:900;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -290,7 +294,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
 @media (prefers-reduced-motion: reduce){#score.bump,.card,.node.cur,.stars-big .popin{animation:none}}
 </style>
 </head>
-<body>
+<body class="on-menu">
 <canvas id="bgfx" aria-hidden="true"></canvas>
 
 <div class="app">
@@ -307,6 +311,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
       <span class="spacer"></span>
       <button class="pill wbtn" id="go-wheel" aria-label="Dagrad" title="Dagrad" data-ta><span aria-hidden="true">🎡</span><span class="dot" id="wheel-dot" hidden></span></button>
       <button class="pill wbtn" id="go-shop" aria-label="Winkel" title="Winkel" data-ta><span aria-hidden="true">🛒</span></button>
+      <button class="pill wbtn gear" id="go-set" aria-label="Instellingen" title="Instellingen" data-ta><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></button>
     </div>
     <div class="menu">
       <button class="mbtn hero play" id="go-classic">
@@ -1146,7 +1151,7 @@ function fitCanvas(){
   cv.style.width=Math.max(200,Math.min(full,room))+'px';
 }
 addEventListener('resize',()=>requestAnimationFrame(fitCanvas));
-function show(name){screen=name;['menu','game','mp','lb','camp'].forEach(s=>$('s-'+s).hidden=s!==name);
+function show(name){screen=name;document.body.classList.toggle('on-menu',name==='menu');['menu','game','mp','lb','camp'].forEach(s=>$('s-'+s).hidden=s!==name);
   if(name!=='game'){fxHeat(0);$('tutbox').hidden=true;$('hint').hidden=false;$('tools').hidden=true;}
   if(name!=='camp'&&!(name==='game'&&S&&S.mode==='camp'))setMapTheme(null);
   if(name==='camp')renderCamp();
@@ -2670,6 +2675,7 @@ function deleteFlow(){
     btn('secondary',tx('Annuleren'),settingsCard)]);
 }
 $('settings').onclick=settingsCard;
+$('go-set').onclick=settingsCard;
 
 /* ---------- first start: language, then username ---------- */
 let langChosen=false;

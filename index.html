@@ -209,9 +209,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
   background:linear-gradient(180deg,#ffd970,var(--accent));box-shadow:0 4px 0 #b07a12;padding-left:4px;box-sizing:border-box}
 .wallet{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
 .wallet .pill{white-space:nowrap;padding:6px 9px;font-size:13px;min-width:0}
-.wallet .wl{margin-left:4px}
-/* narrow phones: the wheel and shop buttons keep only their icon */
-@media (max-width:400px){.wallet .wl{display:none}.wallet .wbtn{padding:6px 10px;font-size:16px}}
+/* the wheel and shop buttons are just an icon (their name is the label for screen readers and the tooltip) */
+.wallet .wbtn{padding:5px 10px;font-size:19px;line-height:1.2}
 .big.coinbig{font-size:32px;margin:0}
 .coinline{font-weight:900;color:#b7791f;margin:0}
 .coins{font-weight:900;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -306,8 +305,8 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
       <span class="hearts" id="hearts" hidden title="Hartjes">❤️ 0</span>
       <button class="pill adbtn" id="go-ad" hidden>🎬 +100</button>
       <span class="spacer"></span>
-      <button class="pill wbtn" id="go-wheel" aria-label="Dagrad" data-ta><span aria-hidden="true">🎡</span><span class="wl" data-t>Dagrad</span><span class="dot" id="wheel-dot" hidden></span></button>
-      <button class="pill wbtn" id="go-shop" aria-label="Winkel" data-ta><span aria-hidden="true">🛒</span><span class="wl" data-t>Winkel</span></button>
+      <button class="pill wbtn" id="go-wheel" aria-label="Dagrad" title="Dagrad" data-ta><span aria-hidden="true">🎡</span><span class="dot" id="wheel-dot" hidden></span></button>
+      <button class="pill wbtn" id="go-shop" aria-label="Winkel" title="Winkel" data-ta><span aria-hidden="true">🛒</span></button>
     </div>
     <div class="menu">
       <button class="mbtn hero play" id="go-classic">
@@ -418,7 +417,7 @@ const dec=x=>LANG==='en'?String(x):String(x).replace('.',',');
 function applyStatic(){
   document.documentElement.lang=LANG;
   document.querySelectorAll('[data-t]').forEach(e=>{if(!e.dataset.k)e.dataset.k=e.textContent;e.textContent=tx(e.dataset.k);});
-  document.querySelectorAll('[data-ta]').forEach(e=>{if(!e.dataset.ka)e.dataset.ka=e.getAttribute('aria-label');e.setAttribute('aria-label',tx(e.dataset.ka));});
+  document.querySelectorAll('[data-ta]').forEach(e=>{if(!e.dataset.ka)e.dataset.ka=e.getAttribute('aria-label');e.setAttribute('aria-label',tx(e.dataset.ka));if(e.hasAttribute('title'))e.title=tx(e.dataset.ka);});
   const lb=document.getElementById('lang');if(lb){lb.textContent=LANG.toUpperCase();lb.setAttribute('aria-label',tx('Taal'));}
 }
 function setLang(l){LANG=l;try{localStorage.setItem('blockers-lang',l)}catch(e){}applyStatic();

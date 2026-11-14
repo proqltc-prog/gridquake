@@ -437,6 +437,15 @@ async function runAll(){
     G().startClassic();await wait(200);const hbGame=getComputedStyle(document.querySelector('header .hbtns')).display,small=parseFloat(getComputedStyle(document.querySelector('.logo')).fontSize);G().S.over=true;G().show('menu');
     return {pass:hb==='none'&&big>small&&row&&settings&&hbGame!=='none',detail:`titel ${big}px / ${small}px`};
   });
+  await t('U30','UAT','Spelscherm: alle rijen even breed als het bord; combo-teller alleen bij een combo',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(400);const S=G().S;
+    const c=$('cv').getBoundingClientRect(),k=c.width/360,L=c.left+11*k,R=c.left+349*k;
+    const off=['.gtop','.meter','#tools','#hint'].map(q=>{const b=document.querySelector('#s-game '+q).getBoundingClientRect();return Math.max(Math.abs(b.left-L),Math.abs(R-b.right));});
+    const hiddenAtStart=$('combo').hidden&&$('combo').textContent==='';
+    emptyBoard();for(let c2=0;c2<7;c2++)S.grid[0][c2]={color:'#ff5f7e'};S.combo=1;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(300);
+    const shown=!$('combo').hidden&&$('combo').textContent.startsWith('×');S.over=true;G().show('menu');
+    return {pass:off.every(x=>x<=2)&&hiddenAtStart&&shown,detail:'afwijking '+off.map(x=>Math.round(x)).join('/')+' px'};
+  });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

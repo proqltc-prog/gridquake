@@ -373,7 +373,8 @@ async function runAll(){
   await t('U23','UAT','Hulpmiddelen in één rij onder de blokken, bord op volle breedte, alles op het scherm',async()=>{
     setWallet(0,{hamer:1,raket:2});G().startClassic();await wait(400);
     const t=$('tools').getBoundingClientRect(),c=$('cv').getBoundingClientRect(),n=document.querySelectorAll('#tools .tool').length;
-    const fullWidth=c.width>=$('cv').parentElement.clientWidth-2||c.width>=440*0.9;
+    // the board takes the full width, unless the screen height is the limit (then the helper row ends at the bottom)
+    const fullWidth=c.width>=$('cv').parentElement.clientWidth-2||t.bottom>=innerHeight-24;
     return {pass:n===4&&t.top>=c.bottom-1&&t.bottom<=innerHeight+1&&fullWidth,detail:`${n} knoppen, rij ${Math.round(t.top)}-${Math.round(t.bottom)}, bord ${Math.round(c.width)} breed`};
   });
   await t('U24','UAT','Raket uit de winkel: tik op een leeg vakje en hij staat er',async()=>{
@@ -445,6 +446,21 @@ async function runAll(){
     emptyBoard();for(let c2=0;c2<7;c2++)S.grid[0][c2]={color:'#ff5f7e'};S.combo=1;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(300);
     const shown=!$('combo').hidden&&$('combo').textContent.startsWith('×');S.over=true;G().show('menu');
     return {pass:off.every(x=>x<=2)&&hiddenAtStart&&shown,detail:'afwijking '+off.map(x=>Math.round(x)).join('/')+' px'};
+  });
+  await t('U31','UAT','Combo-vuur: bij combo 8 een melding, een gloeiende balk en een gratis Raket',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=7;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
+    G().place(0,0,7);await wait(200);const burning=document.querySelector('#s-game .meter').classList.contains('fire');
+    await wait(1400);const said=G().pops.includes('COMBO-VUUR!'),rocket=S.grid[3][3]&&S.grid[3][3].sp==='raket';
+    S.combo=0;G().S.over=true;G().show('menu');
+    return {pass:burning&&said&&rocket,detail:`balk ${burning}, melding ${said}, raket ${!!rocket}`};
+  });
+  await t('N37','negatief','Geen combo-vuur bij combo 7, en de balk brandt niet',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=6;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
+    G().place(0,0,7);await wait(1600);const burning=document.querySelector('#s-game .meter').classList.contains('fire');
+    const rockets=S.grid.flat().filter(x=>x&&x.sp==='raket').length;S.over=true;G().show('menu');
+    return {pass:!burning&&rockets===0&&!G().pops.includes('COMBO-VUUR!'),detail:''};
   });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');

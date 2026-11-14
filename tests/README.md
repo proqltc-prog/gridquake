@@ -71,11 +71,11 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | N30 | negative | Double tap on the coin video starts one video | pass |
 | N31 | negative | The end card no longer appears after the player left | pass |
 | N32 | negative | Settings show no old device-only name | pass |
-| U23 | UAT | All five helpers in a column to the right of the board, inside the screen | pass |
+| U23 | UAT | Helpers in one row under the blocks, board at full width, all on the screen | pass |
 | U24 | UAT | Rocket from the shop: tap an empty cell and it is placed | pass |
 | U25 | UAT | Classic game over: play on with a heart (3 new blocks) | pass |
 | U26 | UAT | Level out of moves: play on with a heart (+5 moves); Menu goes to the menu | pass |
-| N33 | negative | Heart in the column shows the count but is not used during play | pass |
+| N33 | negative | Heart is a counter (menu and game), not a helper button; listed apart in the shop | pass |
 | N34 | negative | Rocket on an occupied cell costs nothing | pass |
 | M3 | UAT (manual) | Very first start: straight into exercise 1, no questions | pass |
 | M4 | security (manual) | Without `?test=1` the test hook does not exist | pass |

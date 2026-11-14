@@ -94,7 +94,7 @@ async function runAll(){
     const S=G().S;emptyBoard();for(let c=0;c<7;c++){S.grid[0][c]={color:'#ff5f7e'};S.grid[1][c]={color:'#ff5f7e'};}
     S.tray=[piece([[0,0],[1,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(1500);
     const sp=S.grid.flat().some(x=>x&&x.sp),tools=document.querySelectorAll('#tools .tool').length;
-    return {pass:!$('tools').hidden&&tools===5&&!sp&&S.score>0,detail:`tools ${tools}, power-blok ${sp}, score ${S.score}`};
+    return {pass:!$('tools').hidden&&tools===4&&!sp&&S.score>0,detail:`tools ${tools}, power-blok ${sp}, score ${S.score}`};
   });
   await t('U5','UAT','Draaien: blok draait een kwartslag, 1 hulpmiddel gebruikt',async()=>{
     setWallet(0,{draai:1});G().startClassic();await wait(300);const S=G().S;S.tray[0]=piece([[0,0],[0,1],[0,2]]);
@@ -370,10 +370,11 @@ async function runAll(){
     return {pass:!txt.includes('OudeNaam'),detail:''};
   });
   // ---------------- helper column next to the board ----------------
-  await t('U23','UAT','Hulpmiddelen staan in een kolom rechts naast het bord, binnen het scherm',async()=>{
+  await t('U23','UAT','Hulpmiddelen in één rij onder de blokken, bord op volle breedte, alles op het scherm',async()=>{
     setWallet(0,{hamer:1,raket:2});G().startClassic();await wait(400);
     const t=$('tools').getBoundingClientRect(),c=$('cv').getBoundingClientRect(),n=document.querySelectorAll('#tools .tool').length;
-    return {pass:n===5&&t.left>=c.right-1&&t.right<=innerWidth+1&&Math.abs(t.top-c.top)<40,detail:`${n} knoppen, links ${Math.round(t.left)} / bord rechts ${Math.round(c.right)}`};
+    const fullWidth=c.width>=$('cv').parentElement.clientWidth-2||c.width>=440*0.9;
+    return {pass:n===4&&t.top>=c.bottom-1&&t.bottom<=innerHeight+1&&fullWidth,detail:`${n} knoppen, rij ${Math.round(t.top)}-${Math.round(t.bottom)}, bord ${Math.round(c.width)} breed`};
   });
   await t('U24','UAT','Raket uit de winkel: tik op een leeg vakje en hij staat er',async()=>{
     setWallet(0,{raket:2});G().startClassic();await wait(300);const S=G().S;emptyBoard();
@@ -392,9 +393,12 @@ async function runAll(){
     S.movesLeft=0;G().loseLevel('moves');await wait(100);const heartOff=cardBtn('hartje').disabled;cardBtn('Menu').click();await wait(400);
     return {pass:btns.length===4&&ok&&heartOff&&G().screen==='menu',detail:btns.join(' | ')};
   });
-  await t('N33','negatief','Hartje in de kolom: toont het aantal, maar wordt tijdens het spel niet verbruikt',async()=>{
-    setWallet(0,{hart:2});G().startClassic();await wait(300);const b=[...document.querySelectorAll('#tools .tool')][4];
-    await G().toolTap('hart');return {pass:b.textContent.includes('Hartje')&&b.textContent.includes('2')&&!b.disabled&&wallet().it.hart===2&&G().pops.some(p=>p.includes('hartje')),detail:''};
+  await t('N33','negatief','Hartje is een teller (menu en spel), geen knop tussen de hulpmiddelen; apart in de winkel',async()=>{
+    setWallet(0,{hart:2});G().show('menu');await wait(50);const menu=$('hearts').textContent;
+    G().startClassic();await wait(300);const game=$('g-hearts').textContent,noBtn=![...document.querySelectorAll('#tools .tool')].some(b=>b.textContent.includes('Hartje'));
+    G().shopCard();await wait(50);const rows=[...document.querySelectorAll('#ovcard .shoplist > *')].map(e=>e.textContent);
+    const head=rows.findIndex(x=>x==='Hartjes'),heartRow=rows.findIndex(x=>x.includes('Hartje')&&x!=='Hartjes');
+    return {pass:menu==='❤️ 2'&&game==='❤️ 2'&&noBtn&&head>=0&&heartRow===head+1&&heartRow===rows.length-1,detail:`menu ${menu}, spel ${game}`};
   });
   await t('N34','negatief','Raket op een bezet vakje kost niets',async()=>{
     setWallet(0,{raket:1});G().startClassic();await wait(300);const S=G().S;S.grid[1][1]={color:'#ff5f7e'};

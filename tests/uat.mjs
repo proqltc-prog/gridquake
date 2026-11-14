@@ -86,8 +86,10 @@ async function runAll(){
   });
   await t('U3','UAT','Winkel: kopen verlaagt munten en verhoogt het hulpmiddel',async()=>{
     setWallet(100,{});G().shopCard();await wait(50);
-    [...document.querySelectorAll('#ovcard .shoprow')].find(r=>r.innerText.includes('Draaien')).querySelector('button').click();await wait(50);
-    const w=wallet();return {pass:w.c===60&&w.it.draai===1,detail:`munten ${w.c}, draaien ${w.it.draai}`};
+    const row=[...document.querySelectorAll('#ovcard .shoprow')].find(r=>r.innerText.includes('Draaien'));
+    const label=row.querySelector('button').innerText;row.querySelector('button').click();await wait(80);
+    const still=row.isConnected,count=row.querySelector('.own').textContent,coins=document.querySelector('#ovcard .coinbig').textContent;
+    const w=wallet();return {pass:w.c===60&&w.it.draai===1&&still&&count==='1'&&coins.includes('60')&&label.includes('Koop'),detail:`munten ${w.c}, draaien ${w.it.draai}, teller ${count}`};
   });
   await t('U4','UAT','Klassiek: hulpbalk zichtbaar, geen power-blokken bij 2 lijnen',async()=>{
     setWallet(0,{hamer:1,draai:1,dobbel:1});G().startClassic();await wait(300);
@@ -373,7 +375,8 @@ async function runAll(){
   await t('U23','UAT','Hulpmiddelen in één rij onder de blokken, bord op volle breedte, alles op het scherm',async()=>{
     setWallet(0,{hamer:1,raket:2});G().startClassic();await wait(400);
     const t=$('tools').getBoundingClientRect(),c=$('cv').getBoundingClientRect(),n=document.querySelectorAll('#tools .tool').length;
-    const fullWidth=c.width>=$('cv').parentElement.clientWidth-2||c.width>=440*0.9;
+    // the board takes the full width, unless the screen height is the limit (then the helper row ends at the bottom)
+    const fullWidth=c.width>=$('cv').parentElement.clientWidth-2||t.bottom>=innerHeight-24;
     return {pass:n===4&&t.top>=c.bottom-1&&t.bottom<=innerHeight+1&&fullWidth,detail:`${n} knoppen, rij ${Math.round(t.top)}-${Math.round(t.bottom)}, bord ${Math.round(c.width)} breed`};
   });
   await t('U24','UAT','Raket uit de winkel: tik op een leeg vakje en hij staat er',async()=>{
@@ -390,7 +393,7 @@ async function runAll(){
     setWallet(0,{hart:1});G().startLevel(1);await wait(300);const S=G().S;S.movesLeft=0;G().loseLevel('moves');await wait(100);
     const btns=[...document.querySelectorAll('#ovcard button')].map(b=>b.textContent);cardBtn('hartje').click();await wait(500);
     const ok=!S.over&&S.movesLeft===5&&wallet().it.hart===0&&$('ov').hidden;
-    S.movesLeft=0;G().loseLevel('moves');await wait(100);const heartOff=cardBtn('hartje').disabled;cardBtn('Menu').click();await wait(400);
+    S.movesLeft=0;G().loseLevel('moves');await wait(100);const heartOff=cardBtn('❤️').disabled;cardBtn('Menu').click();await wait(400);
     return {pass:btns.length===4&&ok&&heartOff&&G().screen==='menu',detail:btns.join(' | ')};
   });
   await t('N33','negatief','Hartje is een teller (menu en spel), geen knop tussen de hulpmiddelen; apart in de winkel',async()=>{
@@ -405,6 +408,93 @@ async function runAll(){
     await G().toolTap('raket');await G().placeRocket(1,1);
     return {pass:wallet().it.raket===1&&!S.grid[1][1].sp,detail:''};
   });
+  // ---------------- themes ----------------
+  const pickTheme=async i=>{close();$('settings').click();await wait(100);if(!document.querySelector('.themegrid'))[...document.querySelectorAll('.acc-h')].find(h=>h.dataset.sec==='theme').click();
+    await wait(100);[...document.querySelectorAll('.themebtn')][i].click();await wait(100);close();};
+  await t('U27','UAT','Thema kiezen: 6 gratis thema\'s, Diepzee geeft eigen kleuren en bewegende achtergrond',async()=>{
+    G().show('menu');$('settings').click();await wait(100);if(!document.querySelector('.themegrid'))[...document.querySelectorAll('.acc-h')].find(h=>h.dataset.sec==='theme').click();await wait(100);
+    const names=[...document.querySelectorAll('.themebtn')].map(b=>b.textContent),noPrice=!names.some(n=>/🪙|munt/.test(n)),noCalm=!names.some(n=>/Rustig/.test(n));
+    await pickTheme(3);
+    return {pass:names.length===6&&noPrice&&noCalm&&G().themeId==='diepzee'&&document.documentElement.dataset.theme==='dark'&&G().fx.kind==='bubbles'
+      &&getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()==='#062a33'&&localStorage.getItem('blockers-theme')==='diepzee',detail:names.join(', ')};
+  });
+  await t('U28','UAT','Combo laat de achtergrond gloeien in een levendig thema',async()=>{
+    await pickTheme(4);setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=4;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(600);
+    return {pass:G().fx.kind==='stars'&&G().fx.target>0.5,detail:'gloed '+G().fx.target.toFixed(2)};
+  });
+  await t('N35','negatief','Light en Dark: geen bewegende achtergrond en geen gloed bij combo',async()=>{
+    const out=[];for(const i of [0,1]){await pickTheme(i);G().startClassic();await wait(200);const S=G().S;S.combo=6;G().S.combo=6;
+      const ok=G().fx.kind===null;S.over=true;out.push(ok);}
+    await pickTheme(1);G().startClassic();await wait(200);const S=G().S;emptyBoard();for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=4;
+    S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(400);
+    return {pass:out.every(Boolean)&&G().fx.target===0,detail:''};
+  });
+  await t('N36','negatief','Buiten het spel geen gloed (ook niet na een combo)',async()=>{
+    await pickTheme(2);G().startClassic();await wait(200);G().fx.target=.8;G().S.over=true;G().show('menu');
+    return {pass:G().fx.target===0&&G().fx.kind==='motes',detail:''};
+  });
+  await t('U29','UAT','Menu: titel alleen en groot; dagrad, winkel en instellingen op de muntenrij; in het spel weer geluid en instellingen bovenaan',async()=>{
+    close();G().show('menu');await wait(50);const hb=getComputedStyle(document.querySelector('header .hbtns')).display,big=parseFloat(getComputedStyle(document.querySelector('.logo')).fontSize);
+    const row=['go-ad','go-wheel','go-shop','go-set'].every(id=>$(id).closest('.wallet'));$('go-set').click();await wait(100);const settings=cardText().includes('Instellingen');close();
+    G().startClassic();await wait(200);const hbGame=getComputedStyle(document.querySelector('header .hbtns')).display,small=parseFloat(getComputedStyle(document.querySelector('.logo')).fontSize);G().S.over=true;G().show('menu');
+    return {pass:hb==='none'&&big>small&&row&&settings&&hbGame!=='none',detail:`titel ${big}px / ${small}px`};
+  });
+  await t('U30','UAT','Spelscherm: alle rijen even breed als het bord; combo-teller alleen bij een combo',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(400);const S=G().S;
+    const c=$('cv').getBoundingClientRect(),k=c.width/360,L=c.left+11*k,R=c.left+349*k;
+    const off=['.gtop','.meter','#tools','#hint'].map(q=>{const b=document.querySelector('#s-game '+q).getBoundingClientRect();return Math.max(Math.abs(b.left-L),Math.abs(R-b.right));});
+    const hiddenAtStart=$('combo').hidden&&$('combo').textContent==='';
+    emptyBoard();for(let c2=0;c2<7;c2++)S.grid[0][c2]={color:'#ff5f7e'};S.combo=1;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(300);
+    const shown=!$('combo').hidden&&$('combo').textContent.startsWith('×');S.over=true;G().show('menu');
+    return {pass:off.every(x=>x<=2)&&hiddenAtStart&&shown,detail:'afwijking '+off.map(x=>Math.round(x)).join('/')+' px'};
+  });
+  await t('U31','UAT','Volle combo-balk: FRENZY!, een gloeiende balk en een gratis Raket bij de hulpmiddelen',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=7;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
+    G().place(0,0,7);await wait(200);const burning=document.querySelector('#s-game .meter').classList.contains('fire');
+    await wait(1400);const said=G().pops.includes('FRENZY!'),onBoard=S.grid.flat().some(x=>x&&x.sp==='raket');
+    const btn=[...document.querySelectorAll('#tools .tool')].find(b=>b.textContent.includes('🚀'));
+    const shown=!!btn&&!btn.disabled&&btn.querySelector('.tn').textContent==='1';
+    await G().toolTap('raket');await G().placeRocket(2,5);const used=S.grid[2][5]&&S.grid[2][5].sp==='raket'&&S.freeRockets===0&&wallet().it.raket===undefined;
+    S.combo=0;G().S.over=true;G().show('menu');
+    return {pass:burning&&said&&!onBoard&&shown&&used,detail:`balk ${burning}, melding ${said}, knop ${shown}, gebruikt ${!!used}`};
+  });
+  await t('N38','negatief','Een gratis Raket geldt alleen voor dat spel: weg in een nieuw spel, nooit in de portemonnee',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(300);let S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=7;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
+    G().place(0,0,7);await wait(1600);const had=S.freeRockets===1;S.over=true;G().show('menu');
+    G().startClassic();await wait(300);S=G().S;
+    const btn=[...document.querySelectorAll('#tools .tool')].find(b=>b.textContent.includes('🚀'));
+    const gone=!S.freeRockets&&btn.disabled&&!wallet().it.raket;S.over=true;G().show('menu');
+    return {pass:had&&gone,detail:''};
+  });
+  await t('N37','negatief','Geen combo-vuur bij combo 7, en de balk brandt niet',async()=>{
+    close();setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=6;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];
+    G().place(0,0,7);await wait(1600);const burning=document.querySelector('#s-game .meter').classList.contains('fire');
+    const rockets=S.grid.flat().filter(x=>x&&x.sp==='raket').length;S.over=true;G().show('menu');
+    return {pass:!burning&&rockets===0&&!G().pops.includes('FRENZY!'),detail:''};
+  });
+  await t('N39','negatief','Eigen hartje maximaal 1 keer per spel',async()=>{
+    setWallet(0,{hart:2});G().startClassic();await wait(300);const S=G().S;gameOverBoard(S);G().endGame();await wait(1200);
+    cardBtn('hartje').click();await wait(500);const first=!S.over&&wallet().it.hart===1;
+    gameOverBoard(S);G().endGame();await wait(1200);const b=cardBtn('❤️'),off=b.disabled&&b.textContent.includes('al gebruikt');b.click();await wait(300);
+    const kept=wallet().it.hart===1&&S.over;cardBtn('Menu').click();await wait(300);
+    return {pass:first&&off&&kept,detail:b.textContent};
+  });
+  await t('U32','UAT','Instellingen openen altijd met alle onderdelen dicht',async()=>{
+    G().show('menu');$('go-set').click();await wait(50);document.querySelector('#ovcard .acc-h').click();await wait(50);
+    const opened=!!document.querySelector('#ovcard .acc.open');close();await wait(50);$('go-set').click();await wait(50);
+    const shut=!document.querySelector('#ovcard .acc.open');close();
+    return {pass:opened&&shut,detail:''};
+  });
+  await t('U33','UAT','Terug- en sluitknoppen zijn groot genoeg (minstens 40 px)',async()=>{
+    const sz=[];G().show('camp');await wait(50);sz.push(document.querySelector('#s-camp [data-back]').getBoundingClientRect());
+    G().startClassic();await wait(300);sz.push($('g-back').getBoundingClientRect());G().S.over=true;G().show('menu');
+    return {pass:sz.every(r=>r.width>=40&&r.height>=40),detail:sz.map(r=>Math.round(r.width)+'×'+Math.round(r.height)).join(', ')};
+  });
+  await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;
   close();G().show('menu');

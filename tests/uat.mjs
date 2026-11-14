@@ -405,6 +405,33 @@ async function runAll(){
     await G().toolTap('raket');await G().placeRocket(1,1);
     return {pass:wallet().it.raket===1&&!S.grid[1][1].sp,detail:''};
   });
+  // ---------------- themes ----------------
+  const pickTheme=async i=>{close();$('settings').click();await wait(100);if(!document.querySelector('.themegrid'))[...document.querySelectorAll('.acc-h')].find(h=>h.dataset.sec==='theme').click();
+    await wait(100);[...document.querySelectorAll('.themebtn')][i].click();await wait(100);close();};
+  await t('U27','UAT','Thema kiezen: 6 gratis thema\'s, Diepzee geeft eigen kleuren en bewegende achtergrond',async()=>{
+    G().show('menu');$('settings').click();await wait(100);if(!document.querySelector('.themegrid'))[...document.querySelectorAll('.acc-h')].find(h=>h.dataset.sec==='theme').click();await wait(100);
+    const names=[...document.querySelectorAll('.themebtn')].map(b=>b.textContent),noPrice=!names.some(n=>/🪙|munt/.test(n)),noCalm=!names.some(n=>/Rustig/.test(n));
+    await pickTheme(3);
+    return {pass:names.length===6&&noPrice&&noCalm&&G().themeId==='diepzee'&&document.documentElement.dataset.theme==='dark'&&G().fx.kind==='bubbles'
+      &&getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()==='#062a33'&&localStorage.getItem('blockers-theme')==='diepzee',detail:names.join(', ')};
+  });
+  await t('U28','UAT','Combo laat de achtergrond gloeien in een levendig thema',async()=>{
+    await pickTheme(4);setWallet(0,{});G().startClassic();await wait(300);const S=G().S;emptyBoard();
+    for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=4;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(600);
+    return {pass:G().fx.kind==='stars'&&G().fx.target>0.5,detail:'gloed '+G().fx.target.toFixed(2)};
+  });
+  await t('N35','negatief','Light en Dark: geen bewegende achtergrond en geen gloed bij combo',async()=>{
+    const out=[];for(const i of [0,1]){await pickTheme(i);G().startClassic();await wait(200);const S=G().S;S.combo=6;G().S.combo=6;
+      const ok=G().fx.kind===null;S.over=true;out.push(ok);}
+    await pickTheme(1);G().startClassic();await wait(200);const S=G().S;emptyBoard();for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=4;
+    S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(400);
+    return {pass:out.every(Boolean)&&G().fx.target===0,detail:''};
+  });
+  await t('N36','negatief','Buiten het spel geen gloed (ook niet na een combo)',async()=>{
+    await pickTheme(2);G().startClassic();await wait(200);G().fx.target=.8;G().S.over=true;G().show('menu');
+    return {pass:G().fx.target===0&&G().fx.kind==='motes',detail:''};
+  });
+  await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;
   close();G().show('menu');

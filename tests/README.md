@@ -14,7 +14,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 
 ## Test run 0.7.0 (13 November 2026)
 
-59 of 59 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
+63 of 63 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
 
 | ID | Type | Test | Result |
 |---|---|---|---|
@@ -77,6 +77,10 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | U26 | UAT | Level out of moves: play on with a heart (+5 moves); Menu goes to the menu | pass |
 | N33 | negative | Heart is a counter (menu and game), not a helper button; listed apart in the shop | pass |
 | N34 | negative | Rocket on an occupied cell costs nothing | pass |
+| U27 | UAT | Six free themes; Deep sea gives its own colours and moving background | pass |
+| U28 | UAT | A combo makes the background glow in a lively theme | pass |
+| N35 | negative | Light and Dark: no moving background and no combo glow | pass |
+| N36 | negative | No glow outside a game | pass |
 | M3 | UAT (manual) | Very first start: straight into exercise 1, no questions | pass |
 | M4 | security (manual) | Without `?test=1` the test hook does not exist | pass |
 

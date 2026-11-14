@@ -423,12 +423,14 @@ async function runAll(){
     for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=4;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(600);
     return {pass:G().fx.kind==='stars'&&G().fx.target>0.5,detail:'gloed '+G().fx.target.toFixed(2)};
   });
-  await t('N35','negatief','Light en Dark: geen bewegende achtergrond en geen gloed bij combo',async()=>{
-    const out=[];for(const i of [0,1]){await pickTheme(i);G().startClassic();await wait(200);const S=G().S;S.combo=6;G().S.combo=6;
+  await t('N35','negatief','Light: geen bewegende achtergrond en geen gloed bij combo; een oude Dark-keuze wordt Disco',async()=>{
+    const out=[];for(const i of [0]){await pickTheme(i);G().startClassic();await wait(200);const S=G().S;S.combo=6;G().S.combo=6;
       const ok=G().fx.kind===null;S.over=true;out.push(ok);}
-    await pickTheme(1);G().startClassic();await wait(200);const S=G().S;emptyBoard();for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=4;
+    await pickTheme(0);G().startClassic();await wait(200);const S=G().S;emptyBoard();for(let c=0;c<7;c++)S.grid[0][c]={color:'#ff5f7e'};S.combo=4;
     S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(400);
-    return {pass:out.every(Boolean)&&G().fx.target===0,detail:''};
+    const calm=G().fx.target===0;S.over=true;G().show('menu');
+    const disco=G().THEMES[1].id==='disco'&&G().THEMES[1].fx==='disco'&&!G().THEMES.some(x=>x.id==='donker');
+    return {pass:out.every(Boolean)&&calm&&disco,detail:''};
   });
   await t('N36','negatief','Buiten het spel geen gloed (ook niet na een combo)',async()=>{
     await pickTheme(2);G().startClassic();await wait(200);G().fx.target=.8;G().S.over=true;G().show('menu');

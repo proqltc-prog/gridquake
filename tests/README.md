@@ -79,7 +79,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | N34 | negative | Rocket on an occupied cell costs nothing | pass |
 | U27 | UAT | Six free themes; Deep sea gives its own colours and moving background | pass |
 | U28 | UAT | A combo makes the background glow in a lively theme | pass |
-| N35 | negative | Light and Dark: no moving background and no combo glow | pass |
+| N35 | negative | Light: no moving background and no combo glow; Disco replaces Dark | pass |
 | N36 | negative | No glow outside a game | pass |
 | U29 | UAT | Menu: title alone and big; wheel, shop and settings on the coin row; settings back on top in a game | pass |
 | U30 | UAT | Game screen: every row as wide as the board; combo number only during a combo | pass |

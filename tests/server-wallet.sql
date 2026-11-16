@@ -2,7 +2,7 @@
 -- Run in the Supabase SQL editor (project seed-and-destroy). Everything runs in one block that ends with
 -- an error on purpose: the error message holds the result and the whole block is rolled back, so the
 -- temporary test account and its data never stay in the database.
--- Expected: "SERVERTEST ok=37 fout=0", "NAAMTEST ok=30 fout=0" and "LIMIETTEST ok=16 fout=0".
+-- Expected: "SERVERTEST ok=37 fout=0", "NAAMTEST ok=30 fout=0", "LIMIETTEST ok=16 fout=0" and "DUELTEST ok=12 fout=0".
 -- Note: the setting unverified_ads of gq09 became unverified_until in gq11 (an end date); SERVERTEST sets it for its own run.
 
 do $$
@@ -120,4 +120,34 @@ begin
   update gridquake.settings set value = 'null' where key = 'unverified_until';
   r := gridquake.ad_claim('coins'); if r->>'status'='ssv' then ok:=ok+1; else bad:=bad+1; o:=o||' A1c'; end if;
   raise exception 'LIMIETTEST ok=% fout=% %', ok, bad, o;
+end $$;
+
+-- Duel of 3 minutes (gq13): kind 't180', never mixed with the 20-move duels of older app versions.
+-- Expected: "DUELTEST ok=12 fout=0".
+do $$
+declare a uuid := gen_random_uuid(); b uuid := gen_random_uuid(); r jsonb; d uuid; o text := ''; ok int := 0; bad int := 0;
+  prog int[] := array(select g*100 from generate_series(0,180) g);
+begin
+  insert into auth.users(id, instance_id, aud, role, is_anonymous, created_at, updated_at) values
+    (a,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',true,now(),now()),
+    (b,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',true,now(),now());
+  insert into gridquake.players(id, nickname) values (a,'Duel Test A'),(b,'Duel Test B');
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role','authenticated')::text, true);
+  r := gridquake.duel_random(); d := (r->>'id')::uuid;
+  if r->>'kind'='t180' and r->>'status'='open' then ok:=ok+1; else bad:=bad+1; o:=o||' D1'; end if;
+  r := gridquake.duel_submit(d, 999999, prog); if r->>'status'='rejected' then ok:=ok+1; else bad:=bad+1; o:=o||' D2'; end if;
+  r := gridquake.duel_submit(d, 5000, prog||array[1]); if r->>'status'='rejected' then ok:=ok+1; else bad:=bad+1; o:=o||' D3'; end if;
+  r := public.gq_duel_submit(d, 5000, array[1,2]); if r->>'status'='wrong_kind' then ok:=ok+1; else bad:=bad+1; o:=o||' D4'; end if;
+  r := gridquake.duel_submit(d, 18000, prog); if r->>'status'='accepted' then ok:=ok+1; else bad:=bad+1; o:=o||' D5'; end if;
+  r := gridquake.duel_submit(d, 19000, prog); if r->>'status'='already' then ok:=ok+1; else bad:=bad+1; o:=o||' D6'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', b, 'role','authenticated')::text, true);
+  r := public.gq_duel_random(); if r->>'kind'='m20' and (r->>'id')::uuid<>d then ok:=ok+1; else bad:=bad+1; o:=o||' D7'; end if;
+  r := gridquake.duel_random(); if (r->>'id')::uuid=d and r->>'status'='matched' and cardinality(array(select jsonb_array_elements(r->'their_prog')))=181 then ok:=ok+1; else bad:=bad+1; o:=o||' D8'; end if;
+  r := gridquake.duel_submit(d, 21000, prog); if r->>'status'='accepted' and (r->'duel'->>'their_score')::int=18000 then ok:=ok+1; else bad:=bad+1; o:=o||' D9'; end if;
+  r := gridquake.duel_challenge(a); if r->>'status'='not_friends' then ok:=ok+1; else bad:=bad+1; o:=o||' D10'; end if;
+  insert into gridquake.friendships(player_id, friend_id) values (b,a);
+  r := gridquake.duel_challenge(a); if r->>'kind'='t180' and r->>'status'='matched' then ok:=ok+1; else bad:=bad+1; o:=o||' D11'; end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', a, 'role','authenticated')::text, true);
+  r := public.gq_duel_submit((r->>'id')::uuid, 100, array[100]); if r->>'status'='wrong_kind' then ok:=ok+1; else bad:=bad+1; o:=o||' D12'; end if;
+  raise exception 'DUELTEST ok=% fout=% %', ok, bad, o;
 end $$;

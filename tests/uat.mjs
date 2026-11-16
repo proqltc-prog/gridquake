@@ -514,6 +514,21 @@ async function runAll(){
     const txt=seen.join(' | ');
     return {pass:seen.length===6&&fit.every(Boolean)&&txt.includes('Combo')&&txt.includes('Hulpjes en munten'),detail:txt};
   });
+  await t('U36','UAT','Duel: een klok van 3:00 in plaats van een zettenteller',async()=>{
+    close();G().playDuel({id:null,seed:42,players:[],r:{}});await wait(400);
+    const lab=$('side-l').textContent,val=$('side').textContent,hidden=$('tools').hidden;G().S.over=true;G().show('menu');
+    return {pass:lab==='Tijd'&&(val==='3:00'||val==='2:59')&&hidden,detail:lab+' '+val};
+  });
+  await t('U37','UAT','Duel: na de tijd stopt het spel en gaat de score per seconde naar schema gridquake',async()=>{
+    const N=G().NET,keep={db:N.db,player:N.player},call=G().API.call,seen=[];
+    try{N.db=N.db||{};N.player={...(N.player||{}),nick:'Tester'};G().API.call=async(fn,args,r,schema)=>{seen.push({fn,args,schema});return [];};
+      close();G().playDuel({id:'test-duel',seed:42,players:[],r:{}});await wait(300);const S=G().S;S.score=1230;S.endsAt=Date.now()+1200;
+      await wait(1000);const red=$('side').classList.contains('low');await wait(3200);
+      const sub=seen.find(x=>x.fn==='duel_submit'),p=sub&&sub.args.p_prog;
+      const ok=S.over&&S.timeUp&&red&&sub&&sub.schema==='gridquake'&&p.length===181&&p[180]===1230&&sub.args.p_score===1230;
+      return {pass:!!ok,detail:sub?sub.fn+' '+sub.schema+' '+p.length:'geen indiening'};}
+    finally{G().API.call=call;N.db=keep.db;N.player=keep.player;close();G().show('menu');}
+  });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

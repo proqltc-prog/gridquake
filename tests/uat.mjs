@@ -507,6 +507,13 @@ async function runAll(){
     G().WAL.streak=keep;
     return {pass:out.every(x=>x>=4.5),detail:'contrast '+out.join(', ')};
   });
+  await t('U35','UAT',"Hoe werkt het spel: 6 pagina's met combo, hulpjes en munten, elke pagina past op het scherm",async()=>{
+    close();$('how').click();await wait(100);const seen=[],fit=[];
+    for(let i=0;i<10&&!$('ov').hidden;i++){const c=$('ovcard');seen.push(c.querySelector('h2').textContent);fit.push(c.scrollHeight<=c.clientHeight+1);
+      c.querySelector('button').click();await wait(120);}
+    const txt=seen.join(' | ');
+    return {pass:seen.length===6&&fit.every(Boolean)&&txt.includes('Combo')&&txt.includes('Hulpjes en munten'),detail:txt};
+  });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

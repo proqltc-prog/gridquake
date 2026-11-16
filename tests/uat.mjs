@@ -496,6 +496,17 @@ async function runAll(){
     G().startClassic();await wait(300);sz.push($('g-back').getBoundingClientRect());G().S.over=true;G().show('menu');
     return {pass:sz.every(r=>r.width>=40&&r.height>=40),detail:sz.map(r=>Math.round(r.width)+'×'+Math.round(r.height)).join(', ')};
   });
+  await t('U34','UAT','Winreeks-vak voor een level is leesbaar in elk thema',async()=>{
+    const rgb=c=>{const m=c.match(/[\d.]+/g).map(Number);return {v:m.slice(0,3),a:m[3]==null?1:m[3]};};
+    const lum=v=>{const f=x=>{x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4);};return .2126*f(v[0])+.7152*f(v[1])+.0722*f(v[2]);};
+    const out=[];const keep=G().WAL.streak;
+    for(let i=0;i<G().THEMES.length;i++){await pickTheme(i);close();G().WAL.streak=3;G().levelIntro(4);await wait(80);
+      const b=document.querySelector('#ovcard .boost.on'),card=rgb(getComputedStyle($('ovcard')).backgroundColor).v,bg=rgb(getComputedStyle(b).backgroundColor);
+      const mixd=bg.v.map((x,k)=>x*bg.a+card[k]*(1-bg.a)),fg=rgb(getComputedStyle(b).color).v,L1=lum(mixd),L2=lum(fg);
+      out.push(+((Math.max(L1,L2)+.05)/(Math.min(L1,L2)+.05)).toFixed(1));close();}
+    G().WAL.streak=keep;
+    return {pass:out.every(x=>x>=4.5),detail:'contrast '+out.join(', ')};
+  });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

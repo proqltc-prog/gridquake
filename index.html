@@ -126,7 +126,7 @@ h2.sec{font-family:var(--display);font-weight:400;font-size:18px;margin:6px 0 0;
 .stat b{display:block;font-family:var(--display);font-weight:400;font-variant-numeric:tabular-nums;line-height:1.15}
 #score{font-size:30px;transform-origin:left center;
   background:linear-gradient(180deg,#ffd23f 0,#ffa51f 55%,#ff7a1a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 #b9520f)}
-#side{font-size:22px;margin-top:4px}
+#side{font-size:22px;margin-top:4px}#side.dual{font-size:15px;white-space:nowrap;letter-spacing:-.3px}
 #side.low{color:var(--hot)}
 #score.bump{animation:bump .42s cubic-bezier(.3,1.9,.5,1)}
 @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.32) rotate(-3deg)}100%{transform:scale(1)}}
@@ -303,6 +303,12 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
 .gl{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px}
 .gl canvas{flex:none}
 .tipbox{background:#eef6ff;border:1px solid #c6e2fb;border-radius:12px;padding:10px 12px;color:#21507a;font-size:14px;line-height:1.4;text-align:left}
+.lvsub{margin:-8px 0 0;color:var(--muted);font-size:14px}
+.lvgoals{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.lvchip{display:flex;align-items:center;gap:7px;background:var(--soft);border-radius:12px;padding:6px 12px 6px 8px;font-weight:800;font-size:15px;text-align:left}
+.lvchip canvas{flex:none}
+.lvlimit{display:flex;justify-content:center;gap:14px;font-family:var(--display);font-size:20px;color:var(--fg)}
+.card .lvrule{text-align:center}
 .movesline{font-family:var(--display);color:var(--fg)!important;font-size:18px}
 .campstars{margin-left:auto;font-family:var(--display);color:var(--accentText);font-size:16px}
 .camp{display:flex;flex-direction:column;gap:4px}
@@ -317,6 +323,7 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--fg);outline-off
 .node .stars .on{color:#fff3a6;text-shadow:0 1px 0 #b36b00}
 .node.locked{background:var(--soft);color:var(--muted);border-color:var(--line);box-shadow:0 4px 0 #d4dcea}
 .node.locked .num{text-shadow:none;font-size:18px}
+.node .tm{position:absolute;left:-7px;top:-7px;font-size:15px;line-height:1;filter:drop-shadow(0 1px 1px rgba(0,0,0,.35))}
 .node .lk{font-size:10px;line-height:1;margin-top:2px}
 .node.cur{animation:nodepulse 1.3s ease-in-out infinite;box-shadow:0 0 0 6px rgba(255,176,32,.35),0 5px 0 rgba(0,0,0,.16)}
 @keyframes nodepulse{50%{transform:translateX(var(--x)) scale(1.1)}}
@@ -457,6 +464,10 @@ const I18N={"en":{"Campagne":"Campaign","Klassiek":"Classic","Solo spelen tot he
 [["en",{"Tijd":"Time","Tijd op!":"Time's up!"}],
  ["fr",{"Tijd":"Temps","Tijd op!":"Temps écoulé !"}],
  ["de",{"Tijd":"Zeit","Tijd op!":"Zeit um!"}]].forEach(([l,o])=>Object.assign(I18N[l],o));
+// texts added for time levels in the campaign
+[["en",{"Tijdlevel":"Time level","Zetten · tijd":"Moves · time","De tijd is op":"Time is up","+30 seconden!":"+30 seconds!","{n} seconden over × {p}":"{n} seconds left × {p}","{n} seconde over × {p}":"{n} second left × {p}","De klok start bij je eerste zet.":"The clock starts with your first move."}],
+ ["fr",{"Tijdlevel":"Niveau chrono","Zetten · tijd":"Coups · temps","De tijd is op":"Le temps est écoulé","+30 seconden!":"+30 secondes !","{n} seconden over × {p}":"{n} secondes restantes × {p}","{n} seconde over × {p}":"{n} seconde restante × {p}","De klok start bij je eerste zet.":"Le chrono démarre à ton premier coup."}],
+ ["de",{"Tijdlevel":"Zeitlevel","Zetten · tijd":"Züge · Zeit","De tijd is op":"Die Zeit ist um","+30 seconden!":"+30 Sekunden!","{n} seconden over × {p}":"{n} Sekunden übrig × {p}","{n} seconde over × {p}":"{n} Sekunde übrig × {p}","De klok start bij je eerste zet.":"Die Uhr startet mit deinem ersten Zug."}]].forEach(([l,o])=>Object.assign(I18N[l],o));
 const LANGS=[['nl','Nederlands'],['en','English'],['fr','Français'],['de','Deutsch']];
 let LANG=(()=>{try{const v=localStorage.getItem('blockers-lang');if(v)return v;}catch(e){}
   const n=((navigator.languages&&navigator.languages[0])||navigator.language||'en').slice(0,2).toLowerCase();return ['nl','fr','de'].includes(n)?n:'en';})();
@@ -523,17 +534,31 @@ const MAPS=[
   tip:'Alle obstakels door elkaar. Toon wat je geleerd hebt!',
   tips:['Kijk eerst welk obstakel het gevaarlijkst is.','Spaar power-blokken voor de moeilijkste plek.','Tijdbommen en lava eerst, de rest daarna.']}];
 const MAPSIZE=20, LEVELS=MAPS.length*MAPSIZE;
-// The crystal mine (map 10) came later and sits before the master test. The master test keeps the
-// level numbers it was tuned with (181-200) inside the tables below: see tuneNo().
 const CRYSTAL_MAP=9;
-const tuneNo=n=>{const m=Math.floor((n-1)/MAPSIZE);return m>CRYSTAL_MAP?n-MAPSIZE:n;};
-const TUNE=[[35,21000,25000],[41,27500,31500],[50,34500,40000],[40,29500,34000],[32,19500,26000],[26,16000,18500],[50,32000,36500],[31,16500,19500],[32,17500,21000],[36,20500,27000],[37,24000,30500],[39,21500,25000],[39,20500,25500],[38,22500,26500],[46,23500,28500],[34,22000,25500],[39,21500,24500],[41,21000,24000],[47,30500,37000],[42,24500,28500],[30,21000,24000],[41,24000,28000],[50,31000,38500],[33,18500,24500],[39,24500,29500],[32,19500,23000],[29,17500,20000],[36,18500,22500],[31,18000,21000],[42,26000,30000],[29,15000,20500],[37,22000,26500],[29,15500,18500],[42,22500,32500],[37,19000,22500],[49,34500,39500],[45,34000,39500],[45,26500,30500],[34,22500,25500],[42,25500,31500],[36,20000,23000],[35,19500,26000],[49,33500,38500],[28,15500,19000],[40,22500,26000],[38,23000,27000],[42,23500,27000],[32,19000,21500],[23,14500,16500],[29,16500,22500],[35,20000,23000],[29,18500,21500],[46,29500,34000],[37,20000,23500],[39,24000,27500],[42,23500,28500],[47,25500,30500],[43,24500,30000],[39,28500,33000],[37,21000,24000],[42,26500,30500],[37,27500,31500],[38,27500,32000],[39,26000,30500],[33,18000,23500],[38,24000,31500],[41,26000,30000],[40,26000,30500],[38,21500,28000],[50,33000,39500],[41,29000,33500],[35,26000,29500],[39,25000,29500],[50,31500,36500],[32,20500,27000],[37,23500,29000],[50,34000,39000],[44,29000,33500],[50,36500,43500],[45,29000,33000],[14,6500,11500],[21,12000,13500],[20,10500,12500],[17,9000,10500],[12,6000,7500],[22,12500,15500],[47,34500,39500],[32,16500,23000],[39,19500,22500],[42,21500,24500],[28,15000,18000],[31,15000,20500],[31,18000,21000],[26,10000,11500],[35,17500,21000],[27,12000,14000],[39,22000,25000],[36,18500,21500],[42,25000,28500],[38,22000,25000],[28,13500,17000],[24,15000,18500],[29,15500,18000],[25,16000,23000],[23,8500,14500],[29,93500,114000],[28,25000,36500],[36,23500,30500],[35,18500,23000],[45,32500,37500],[45,36500,42000],[42,35000,40000],[38,19500,22500],[32,80000,118000],[28,13500,19500],[29,17500,20000],[45,30500,35000],[39,28500,32500],[23,12500,15000],[38,28000,32000],[28,20500,23500],[43,26500,30500],[31,17500,20500],[49,29500,35000],[39,20500,27500],[37,22500,29000],[40,25000,28500],[42,20000,25500],[44,27000,32000],[36,22500,26000],[40,24000,27500],[12,6000,7000],[31,18500,24000],[45,21500,29500],[29,20500,23500],[31,19500,24000],[36,22000,25500],[50,33500,40500],[49,33500,39000],[36,19000,25500],[46,28500,34500],[50,30000,37500],[41,26500,31500],[42,26500,31500],[35,20000,25500],[49,37000,42500],[50,37000,42500],[38,18000,22500],[43,29500,34000],[27,15500,18500],[35,21000,27000],[47,32000,36500],[36,23000,27000],[36,24000,29000],[39,27000,31000],[32,20500,24000],[44,24500,30000],[47,29000,34500],[40,32000,37000],[50,42000,49500],[32,16500,19000],[32,16500,19500],[36,18500,22500],[29,13500,17500],[32,14500,19000],[32,17000,20000],[31,15500,18500],[41,21000,27000],[32,17000,20000],[38,19000,22000],[32,17500,20000],[29,15500,18000],[42,27000,31000],[22,14500,20000],[31,19500,22500],[37,21500,24500],[32,19000,22000],[29,14500,17000],[29,16500,20500],[38,20000,26500],[32,19000,22000],[37,20000,23000],[47,34000,42000],[35,19000,22000],[49,26500,30000],[43,26500,32500],[37,27500,37500],[43,23500,28500],[42,22000,26000],[45,27000,31500],[49,32000,37000],[24,15500,18000],[43,30000,34500],[39,22000,26500],[50,29500,38500],[39,20000,24500],[44,25500,29000],[39,25500,29000],[47,27000,32500],[48,29000,34000]];
-const LSCALE={"3":0.3,"5":0.66,"6":0.312,"7":0.3,"8":0.667,"10":0.642,"11":0.668,"12":0.3,"13":0.3,"14":0.3,"15":0.3,"16":0.3,"17":0.3,"18":0.3,"19":0.3,"20":0.3,"21":0.525,"23":0.3,"24":2.118,"25":0.741,"26":0.433,"28":0.558,"29":1.6,"30":0.326,"31":0.3,"32":0.3,"34":0.599,"35":0.603,"36":0.3,"38":0.3,"39":0.3,"40":0.414,"43":0.45,"44":1.6,"47":0.765,"48":0.591,"49":2.2,"52":2.2,"53":0.531,"54":0.703,"55":0.316,"56":0.3,"57":0.45,"58":0.605,"60":0.398,"63":0.456,"65":0.703,"68":0.528,"70":0.775,"73":0.589,"74":0.3,"75":0.331,"76":0.3,"77":0.3,"78":0.45,"79":0.3,"80":0.315,"81":2.2,"82":1.6,"84":2.2,"85":0.885,"86":2.2,"87":0.571,"88":0.39,"89":0.6,"90":0.455,"91":0.6,"92":0.349,"93":0.351,"94":0.56,"95":0.455,"96":0.48,"97":0.36,"98":0.36,"99":0.339,"100":0.338,"105":0.82,"106":2.2,"108":0.344,"109":0.743,"110":0.3,"111":0.3,"112":0.3,"113":0.36,"114":0.3,"115":0.36,"116":0.308,"117":0.3,"119":0.3,"120":0.479,"128":0.315,"129":0.651,"130":0.821,"131":0.517,"132":0.3,"133":1.027,"134":0.483,"135":0.549,"136":0.3,"137":0.3,"138":0.321,"139":0.341,"140":0.3,"145":0.703,"146":0.3,"148":0.332,"150":0.3,"151":0.458,"152":0.757,"153":0.3,"154":0.483,"156":0.362,"157":0.3,"158":0.3,"166":1.6,"167":1.179,"168":0.3,"171":1.253,"173":1.556,"174":0.885,"176":1.587,"179":1.089,"181":0.493,"183":0.462,"186":0.465,"188":0.324,"189":0.608,"190":0.728,"191":0.6,"192":0.3,"193":0.674,"194":0.721,"197":0.323,"198":0.414};
-const LVAR={"85":1,"86":1,"114":6,"119":3,"137":2};
-// crystal mine (map 10): [moves, ★★, ★★★] per level, obstacle scale and layout variant, from the tuning bot (scripts/tune-bot.mjs)
-const XTUNE=[[41,27500,36000],[46,31500,37000],[45,31500,36000],[45,29500,36500],[40,28500,31000],[41,25500,28500],[30,20000,26500],[50,26500,31000],[45,35500,39000],[27,17500,27000],[42,31500,36000],[39,26500,34500],[45,44500,53500],[32,27500,28500],[41,39500,43000],[32,34000,38500],[37,35500,44500],[46,43500,48500],[41,43000,47500],[50,49000,53000]];
-const XSCALE={"181":2.1,"182":2.1,"183":0.4,"184":1.45,"185":1.45,"186":0.4,"188":0.4,"189":0.55,"190":0.55,"191":0.4,"192":0.7,"193":2.1,"194":0.55,"195":1.45,"196":2.1,"197":1.45,"198":1.45,"199":2.1,"200":2.1};
-const XVAR={"181":2,"185":2,"186":1,"187":2,"188":2,"189":1,"190":1,"192":1,"193":1,"198":2,"199":2};
+// Every level: [moves (0 = no move limit), seconds (0 = no clock), ★★, ★★★, obstacle scale, layout variant],
+// written by the tuning bot (node scripts/tune-bot.mjs tune 1-220); every level is won by the bot within its limits.
+/*CTUNE-START*/const CTUNE=[[60,0,44000,50500,1,0],[60,0,45500,49500,1.75,1],[60,0,41500,49500,1.2,0],[59,0,45000,47000,1.75,0],[60,0,41000,50000,0.85,1],[60,0,41000,46000,1,0],[60,0,44500,47000,0.4,0],[41,0,25500,28500,1,0],[46,0,30000,36000,0.85,1],[56,0,37000,42500,0.7,0],[39,0,26000,31000,0.55,0],[49,0,42000,45500,2.1,0],[56,0,34000,39500,0.55,0],[56,0,36500,39000,0.4,0],[52,0,35000,38500,0.4,1],[60,0,39000,42000,0.4,1],[49,0,37000,43500,1.75,0],[38,0,26000,31000,1.45,1],[56,0,39000,42500,0.85,1],[51,0,31500,36000,0.7,1],[59,0,38500,43500,0.85,1],[53,0,35500,42500,0.4,0],[59,0,46500,50500,1.2,0],[47,0,32500,38000,0.4,1],[51,0,33000,37000,0.55,0],[60,0,44500,51500,0.4,1],[50,0,36000,38000,0.4,0],[35,0,19000,19500,0.55,1],[0,225,37500,42000,0.4,0],[56,0,32000,38000,0.55,0],[39,0,23000,27500,0.4,1],[60,0,44500,49500,0.4,0],[47,0,31000,34500,0.7,1],[0,235,32500,39500,0.4,0],[60,0,37500,43500,0.4,0],[60,0,37500,40500,2.1,0],[60,0,40000,43500,0.4,0],[60,0,33500,37500,0.7,0],[60,0,42500,47000,0.55,0],[60,0,44000,46000,0.4,1],[46,0,29500,33500,1,0],[60,0,42000,48000,1,0],[60,0,43500,51000,1.45,1],[48,0,32500,38500,1.75,1],[60,0,45000,49500,1.45,1],[40,0,25500,29000,1,0],[50,0,35500,41500,1.2,1],[35,0,18500,21500,0.55,1],[0,165,24000,29000,1.2,0],[60,0,40500,48500,0.4,0],[56,0,44000,47000,1.75,0],[60,0,44500,53000,1,0],[60,0,41500,43500,0.55,0],[0,215,30500,36000,0.4,1],[60,0,41500,45000,0.7,0],[41,0,24500,30000,0.4,1],[58,0,47500,49500,0.4,4],[51,0,26500,33000,0.55,1],[40,0,21500,31000,0.55,1],[49,0,28000,31000,1,1],[56,0,47500,50500,0.7,1],[51,0,31500,39000,2.1,0],[60,0,45000,51000,1.45,1],[60,0,42500,52000,1.75,0],[60,0,42500,46500,1.75,1],[60,0,46000,51000,1.45,1],[60,0,44000,48500,1.45,0],[36,0,20500,23000,0.4,0],[0,225,37000,46000,1.2,1],[58,0,41000,49000,0.85,0],[41,0,27500,32500,1.2,1],[60,0,53500,56500,0.7,0],[60,0,40500,44000,0.85,0],[0,300,56500,65000,0.55,1],[60,0,44000,51000,0.4,0],[41,0,28500,31500,0.25,1],[46,0,40000,42000,0.25,1],[0,270,47000,52000,0.4,0],[60,0,45000,50500,0.4,0],[60,0,49000,53000,0.25,1],[22,0,12500,16500,0.55,0],[24,0,14000,18500,0.7,1],[14,0,8500,9500,2.1,1],[19,0,10500,12000,0.7,1],[16,0,8500,10000,0.85,1],[31,0,21000,25500,0.4,0],[52,0,29000,30500,0.4,3],[36,0,17500,21500,0.4,1],[0,240,34500,38500,0.4,1],[39,0,17500,19000,0.4,1],[54,0,32000,34500,0.4,1],[52,0,30500,34000,0.4,1],[52,0,32000,34500,0.4,1],[0,175,17500,21000,0.4,1],[41,0,23500,25500,0.25,1],[47,0,30000,31500,0.4,1],[42,0,25000,27000,0.25,5],[0,160,20000,23000,0.25,2],[41,0,23500,25000,0.25,0],[60,0,31000,34500,0.25,1],[38,0,17500,20500,1.45,1],[38,0,26000,31500,1.75,0],[14,0,7000,8500,0.55,0],[36,0,22500,30500,1.2,1],[19,0,7500,9500,0.4,1],[26,0,58000,108500,2.1,0],[10,0,4000,5500,0.25,0],[39,0,19000,24500,0.4,0],[0,120,12500,14000,0.7,0],[49,0,28000,29500,0.4,1],[53,0,36500,38500,0.55,0],[60,0,45500,52500,0.7,0],[54,0,37500,42000,0.25,1],[0,225,38000,42500,0.25,0],[60,0,37500,44000,0.25,2],[42,0,24500,27500,0.4,1],[60,0,45000,48000,0.25,1],[40,140,38000,46500,0.25,0],[42,0,21000,25500,0.25,1],[60,260,58000,73000,0.4,1],[60,0,44500,48500,1.2,1],[60,0,41000,51500,0.7,1],[60,0,43000,47000,1,0],[46,0,31000,34500,0.85,1],[60,0,40000,46000,1,0],[56,0,40000,44000,1,1],[41,0,34000,36500,0.25,1],[42,0,23000,31000,0.4,1],[0,165,26500,30000,0.4,0],[60,0,47000,49000,0.7,0],[52,0,38000,41500,0.7,1],[60,0,41000,43500,0.55,1],[60,0,43000,48500,1,0],[0,250,45000,52000,0.4,0],[60,0,41500,46500,0.4,0],[44,0,30000,34000,0.4,1],[60,0,39500,45500,0.4,1],[44,155,41500,53500,0.25,1],[60,0,44000,48000,0.4,0],[60,245,82000,87500,0.25,1],[57,0,39000,45000,2.1,0],[53,0,31500,39500,1.45,1],[60,0,47000,54500,1.45,1],[52,0,35000,39500,1.2,1],[60,0,45500,50500,1.75,0],[39,0,23000,29000,1,1],[60,0,46000,50000,1,0],[39,0,22500,28500,0.4,1],[0,205,34000,38500,0.4,1],[59,0,42000,48500,1.2,0],[42,0,27000,31500,0.55,1],[60,0,46000,51000,0.55,1],[46,0,31000,38000,0.25,1],[0,235,41500,44000,0.85,1],[46,0,26500,32000,0.4,0],[46,0,30500,35000,0.4,1],[56,0,41500,45500,1,1],[60,300,76000,89500,0.4,0],[36,0,20500,25500,0.4,0],[60,215,70500,77000,0.7,2],[35,0,14000,18000,1.2,1],[39,0,19000,21000,1.2,1],[38,0,19500,22000,0.85,0],[36,0,15000,18000,1.45,1],[41,0,18000,19500,1.2,0],[32,0,14000,18000,1.45,1],[42,0,18000,21000,1.45,0],[47,0,23500,29000,0.4,0],[0,130,13500,15500,0.7,1],[43,0,17000,21000,0.85,1],[31,0,16000,18000,1.45,1],[38,0,18500,24500,1.45,0],[41,0,20000,23000,1.75,1],[0,120,12500,14500,1.2,1],[42,0,19500,24000,1.45,0],[29,0,13000,15500,1.45,1],[39,0,19500,23000,1.45,1],[36,130,26500,30000,0.7,0],[38,0,19000,22000,1.2,1],[46,165,30000,31500,1,0],[57,0,47000,53000,2.1,1],[38,0,27500,32500,0.7,0],[60,0,42500,52500,1,0],[36,0,25500,32000,2.1,0],[60,0,44000,49000,1.75,1],[32,0,26500,28500,1,0],[60,0,45500,58500,1.75,1],[43,0,19000,22500,0.4,1],[0,205,43000,48000,2.1,0],[51,0,48500,52500,2.1,0],[37,0,31500,35000,2.1,0],[53,0,52500,55500,1.75,0],[46,0,47000,49000,2.1,1],[0,165,31000,36500,1.2,1],[50,0,40000,50500,0.7,1],[43,0,40000,42000,1.45,1],[60,0,57500,61500,2.1,0],[56,200,88500,98000,2.1,0],[47,0,45000,49000,2.1,1],[54,190,65000,75000,0.7,1],[42,0,20000,24000,0.25,9],[58,0,42000,44000,1.2,0],[60,0,45000,49000,1.45,0],[49,0,23000,26000,0.4,1],[47,0,26000,27500,1.75,1],[42,0,21000,24000,0.4,0],[59,0,43000,47000,1,0],[43,0,23000,28500,0.4,0],[0,270,37000,41500,0.55,0],[59,0,36000,40000,0.55,0],[49,0,28000,29500,0.4,1],[51,0,40000,43500,0.25,0],[46,0,26000,35500,0.4,1],[0,205,28500,30000,0.85,1],[59,0,39500,43000,2.1,0],[52,0,31500,33500,0.25,3],[41,0,31500,34500,0.25,9],[40,140,37000,48000,0.25,1],[42,0,20500,23000,0.85,0],[47,170,42000,47000,0.4,0]];/*CTUNE-END*/
+// Start boards: '#' is a block that is already on the board when the level starts
+const BOARDS=[
+ ['........','........','........','........','...##...','..####..','.######.','#######.'],
+ ['#.#.#.#.','........','.#.#.#.#','........','#.#.#.#.','........','.#.#.#.#','........'],
+ ['##....##','#......#','........','........','........','........','#......#','##....##'],
+ ['........','.##..##.','#######.','.######.','..####..','...##...','........','........'],
+ ['#.......','##......','###.....','####....','.####...','..####..','...####.','....###.'],
+ ['#......#','.#....#.','..#..#..','........','........','..#..#..','.#....#.','#......#'],
+ ['........','#......#','#......#','#......#','#......#','##....##','.######.','........'],
+ ['...##...','..#..#..','.#....#.','#......#','#......#','.#....#.','..#..#..','...##...'],
+ ['........','.##..##.','.##..##.','.##..##.','.##..##.','.##..##.','.##..##.','........'],
+ ['##..##..','.##..##.','..##..##','........','........','##..##..','.##..##.','..##..##'],
+ ['...##...','...##...','........','...##...','...##...','........','...##...','...##...'],
+ ['..####..','.#....#.','#.#..#.#','#......#','#.#..#.#','#..##..#','.#....#.','..####..']];
+// The kind of level: its limit (moves, time or both) and its start board (-1: none).
+// Time levels from map 2 on (2 per map, 3 from map 4), moves and time together from map 6 (also the boss).
+function levelPlan(m,i){
+  const both=m>=5&&(i===17||i===MAPSIZE-1), time=!both&&m>=1&&(i===8||i===13||(m>=3&&i===17));
+  const at=[2,6,11,16].indexOf(i);
+  return {limit:both?'both':time?'time':'moves',shape:at<0?-1:(m*4+at)%BOARDS.length};
+}
 const grid0=()=>Array.from({length:N},()=>Array(N).fill(null));
 const zero0=()=>Array.from({length:N},()=>Array(N).fill(0));
 
@@ -563,19 +588,20 @@ const ISLANDS=[
  ['........','..####..','..#..#..','..#..#..','..#..#..','..#..#..','..####..','........'],
  ['#.#.#.#.','........','#......#','........','........','#......#','........','.#.#.#.#']];
 function makeLevel(n,scale,variant){
-  // tn: the number the level was tuned with; the crystal mine has its own tables (XTUNE, XSCALE)
-  const m=Math.floor((n-1)/MAPSIZE), i=(n-1)%MAPSIZE, cx=m===CRYSTAL_MAP, tn=tuneNo(n);
-  const vr=variant??(cx?XVAR[n]:LVAR[tn])??0, rng=mulberry32((cx?n+90000:tn)*7919+13+vr*104729), map=MAPS[m];
-  const hard=i%5===4, boss=i===MAPSIZE-1, easy=i%5===0&&i>0, sc=(scale||(cx?XSCALE:LSCALE))[tn]||1;
+  // scale and variant: from the tuning table, or given by the tuning bot while it tries them
+  const m=Math.floor((n-1)/MAPSIZE), i=(n-1)%MAPSIZE, T=CTUNE[n-1], plan=levelPlan(m,i);
+  const vr=variant??(T?T[5]:0), rng=mulberry32(n*7919+13+vr*104729), map=MAPS[m];
+  const hard=i%5===4, boss=i===MAPSIZE-1, easy=i%5===0&&i>0, sc=typeof scale==='number'?scale:(T?T[4]:1);
   const k=v=>Math.max(1,Math.round(v*sc*(boss?1.3:hard?1.2:easy?.8:1)));
-  const lv={n,m,w:m,i,vr,seed:(((cx?n+90000:tn)+vr*1000)*2654435761)>>>0,goals:[],cells:[],ice:[],paint:[],holes:[],drop:0,dropMax:2,moss:0,mossN:1,
+  const lv={n,m,w:m,i,vr,seed:((n+vr*1000)*2654435761)>>>0,plan,goals:[],cells:[],ice:[],paint:[],holes:[],drop:0,dropMax:2,moss:0,mossN:1,
     bombT:0,bombDrop:0,lava:0,lavaGap:2,lavaStart:0,keys:0,crystals:0,hard,boss,easy,intro:i===0};
   const occ=new Set();
   const pat=()=>PATS[Math.floor(rng()*PATS.length)];
   const col=()=>COLORS[Math.floor(rng()*COLORS.length)];
   const put=(kind,count,make,rows)=>{const o=patternOrder(kind,rng);let made=0;
     for(const [r,c] of o){if(made>=count)break;if(rows&&!rows(r))continue;const q=r*N+c;if(occ.has(q))continue;occ.add(q);lv.cells.push({r,c,...make(made)});made++;}return made;};
-  const holes=layout=>{layout.forEach((row,r)=>[...row].forEach((ch,c)=>{if(ch==='#'){occ.add(r*N+c);lv.holes.push([r,c]);}}));};
+  // an easier level (scale < 1) keeps fewer of the water cells of its island layout
+  const holes=layout=>{const keep=Math.min(1,Math.max(.4,sc));layout.forEach((row,r)=>[...row].forEach((ch,c)=>{if(ch==='#'&&rng()<keep){occ.add(r*N+c);lv.holes.push([r,c]);}}));};
   const ice=(count,goal)=>{const o=patternOrder(pat(),rng),s=new Set(lv.ice.map(([r,c])=>r*N+c));let made=0;
     for(const [r,c] of o){if(made>=count)break;const q=r*N+c;if(s.has(q))continue;const x=lv.cells.find(e=>e.r===r&&e.c===c);if((x&&x.t!=='block')||lv.holes.some(([a,b])=>a===r&&b===c))continue;s.add(q);lv.ice.push([r,c]);made++;}
     if(goal)lv.goals.push({t:'ice'});};
@@ -585,7 +611,7 @@ function makeLevel(n,scale,variant){
   const junk=(cnt,rows)=>put(pat(),cnt,()=>({t:'block',color:col()}),rows);
   // an easier level (scale < 1) also gets more time on its bombs
   const bombs=(cnt,t,goal,extra,dropEvery)=>{t=Math.round(t/Math.min(1,Math.max(.5,sc)));const made=put(pat(),cnt,j=>({t:'bomb',color:col(),v:t+j*3}));lv.bombT=t+2;
-    if(dropEvery)lv.bombDrop=dropEvery;if(goal)lv.goals.push({t:'bombs',target:made+(extra||0)});};
+    if(dropEvery)lv.bombDrop=Math.round(dropEvery/Math.min(1,Math.max(.5,sc)));if(goal)lv.goals.push({t:'bombs',target:made+(extra||0)});};
   const paint=(cnt,ncol)=>{const cols=COLORS.slice().sort(()=>rng()-.5).slice(0,ncol),o=patternOrder(pat(),rng);let made=0;
     for(const [r,c] of o){if(made>=cnt)break;const q=r*N+c;if(occ.has(q))continue;occ.add(q);lv.paint.push([r,c,COLORS.indexOf(cols[made%ncol])+1]);made++;}
     lv.goals.push({t:'paint'});};
@@ -659,7 +685,10 @@ function makeLevel(n,scale,variant){
     else if(v===3){lava(3,i<10?2:1,1,k(10+i*.6));bombs(k(1),12,true,k(1),5);}
     else{ice(k(7+i*.3),true);stones(k(3+i*.15),true,i>=14,.5);lv.drop=4;}
   }
-  if(scoreLv)lv.goals=[{t:'score',target:Math.round((800+tn*10)*sc/50)*50*PTS}];
+  // a start board: blocks in a shape, on the cells that are still free (rows in the same colour)
+  if(plan.shape>=0)BOARDS[plan.shape].forEach((row,r)=>[...row].forEach((ch,c)=>{const q=r*N+c;if(ch!=='#'||occ.has(q))return;
+    occ.add(q);lv.cells.push({r,c,t:'block',color:COLORS[(r+m)%COLORS.length]});}));
+  if(scoreLv)lv.goals=[{t:'score',target:Math.round((800+n*10)*sc/50)*50*PTS}];
   if(!lv.goals.length)lv.goals.push({t:'lines',target:k(8)});
   // never start with a full row or column (water counts as filled)
   for(let guard=0;guard<30;guard++){
@@ -671,7 +700,7 @@ function makeLevel(n,scale,variant){
     if(!fixed)break;
   }
   lv.goals.forEach(g=>{if(g.t==='stones')g.target=Math.min(g.target,lv.cells.filter(e=>e.t==='stone').length)||1;});
-  const t=cx?XTUNE[i]:TUNE[tn-1];lv.moves=t?t[0]:30;lv.stars=t?[t[1],t[2]]:[15000,30000];
+  lv.moves=T?T[0]:plan.limit==='time'?0:30;lv.time=T?T[1]:plan.limit==='moves'?0:120;lv.stars=T?[T[2],T[3]]:[15000,30000];
   return lv;
 }
 
@@ -811,7 +840,7 @@ function comboArea(st,A,B,r,c){
 }
 // Breadth-first through detonations. Each event: hit | break (stone) | unlock (chain) | open (chest) | remove (block, moss, lava, key, bomb, power block)
 // Scoring: every point source is multiplied by PTS; each move left at the end of a level is worth MOVE_BONUS.
-const PTS=10,MOVE_BONUS=100*PTS,CRYSTAL_PTS=150,COMBO_FIRE=8;
+const PTS=10,MOVE_BONUS=100*PTS,TIME_BONUS=25*PTS,CRYSTAL_PTS=150,COMBO_FIRE=8;
 function resolveG(st,start){
   const done=new Set(),remove=[],events=[],chests=[];
   const q=start.map(s=>({...s,par:-1,w:0}));
@@ -1411,7 +1440,7 @@ function newGame(opt){
   const seed=opt.lvl?opt.lvl.seed:(opt.seed??(Math.random()*2**31|0));
   S=newState({mode:opt.mode,seed,lvl:opt.lvl});
   Object.assign(S,{duel:opt.duel||null,born:Array.from({length:N},()=>Array(N).fill(0)),trayT:now(),
-    movesLeft:opt.lvl?opt.lvl.moves:0,prog:[],gameId:Date.now().toString(36)+Math.random().toString(36).slice(2,8),cont:false,cont2:false,over:false,lock:false,started:Date.now(),
+    movesLeft:opt.lvl?opt.lvl.moves:0,timeLeft:opt.lvl?opt.lvl.time*1000:0,clockOn:false,prog:[],gameId:Date.now().toString(36)+Math.random().toString(36).slice(2,8),cont:false,cont2:false,over:false,lock:false,started:Date.now(),
     best:opt.mode==='classic'?Math.max(localBest(),NET.player?.best||0):0,recordHit:false});
   S.bestStart=S.best;S.shown=0;disp=0;parts=[];pops=[];dying=[];effects=[];shake=0;flash=0;
   $('score').textContent='0';$('score').classList.remove('bump');$('tutbox').hidden=true;$('hint').hidden=false;document.querySelector('#s-game .meter').hidden=false;
@@ -1525,7 +1554,8 @@ function place(idx,r,c){
   if(rep.crystals)endT=crystalFx(rep.crystals,rep.L?endT-150:T+120);
   S.prog.push(S.score);
   if(S.mode!=='classic')S.movesLeft--;
-  if(S.mode==='camp'&&S.movesLeft===1&&!levelWon(S)){const G=S;setTimeout(()=>{if(G!==S||S.over)return;pop(tx('Laatste zet!'),W/2,PAD+BOARD*.5,'callout');sfx.warn();buzz([30,60,30]);},Math.max(300,endT-now()));}
+  if(S.mode==='camp'&&S.lvl.time)S.clockOn=true; // the clock of a time level starts with the first move
+  if(S.mode==='camp'&&S.lvl.moves&&S.movesLeft===1&&!levelWon(S)){const G=S;setTimeout(()=>{if(G!==S||S.over)return;pop(tx('Laatste zet!'),W/2,PAD+BOARD*.5,'callout');sfx.warn();buzz([30,60,30]);},Math.max(300,endT-now()));}
   if(rep.refill)refillFx(rep.refill);
   if(rep.painted&&rep.painted.length){const [a,b]=rep.painted[0];pop(tx('Geschilderd!'),PAD+b*CS+CS/2,PAD+a*CS-6,'info',mix(dcol(p.color),-.2));sfx.make();}
   if(rep.moss&&rep.moss.length){const t=Math.max(now(),endT-150);rep.moss.forEach(([a,b])=>S.born[a][b]=t);
@@ -1543,7 +1573,8 @@ function afterAction(wait){
     else if(S.boom){S.lock=true;const {r,c}=S.boom;setTimeout(()=>{if(!reduced)shake=22;flash=.6;sfx.bom();buzz([80,40,120]);
       pop(tx('BOEM!'),PAD+c*CS+CS/2,PAD+r*CS,'callout');setTimeout(()=>loseLevel('bomb'),900);},wait);}
     else if(S.overflow){S.lock=true;setTimeout(()=>{if(!reduced)shake=18;flash=.5;sfx.drop();setTimeout(()=>loseLevel('lava'),700);},wait);}
-    else if(S.movesLeft<=0){S.lock=true;setTimeout(()=>loseLevel('moves'),wait);}
+    else if(S.lvl.moves&&S.movesLeft<=0){S.lock=true;setTimeout(()=>loseLevel('moves'),wait);}
+    else if(S.timeUp){S.lock=true;}
     else if(trayStuck(S)){S.lock=true;setTimeout(()=>loseLevel('space'),wait+300);}
   }
   else if(!S.tray.some(x=>x&&fitsAny(x))){S.lock=true;setTimeout(endGame,wait+300);}
@@ -1570,7 +1601,11 @@ function bump(){const e=$('score');e.classList.remove('bump');void e.offsetWidth
 function hud(){
   if(S.mode==='duel'){const t=duelLeft();$('side-l').textContent=tx('Tijd');$('side').textContent=Math.floor(t/60)+':'+String(t%60).padStart(2,'0');$('side').classList.toggle('low',t<=10);}
   else if(S.mode==='tut'){$('side-l').textContent=tx('Oefening');$('side').classList.remove('low');$('side').textContent=S.tut?(S.tut.k+1)+'/'+TRAIN_N:'';}
-  else if(S.mode==='camp'){$('side-l').textContent=tx('Zetten');$('side').textContent=S.movesLeft;$('side').classList.toggle('low',S.movesLeft<=3);}
+  else if(S.mode==='camp'){const L=S.lvl,sec=Math.ceil(S.timeLeft/1000),clk=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+    $('side').classList.toggle('dual',!!(L.moves&&L.time));
+    if(L.moves&&L.time){$('side-l').textContent=tx('Zetten · tijd');$('side').textContent=S.movesLeft+' · '+clk;$('side').classList.toggle('low',S.movesLeft<=3||sec<=10);}
+    else if(L.time){$('side-l').textContent=tx('Tijd');$('side').textContent=clk;$('side').classList.toggle('low',sec<=10);}
+    else{$('side-l').textContent=tx('Zetten');$('side').textContent=S.movesLeft;$('side').classList.toggle('low',S.movesLeft<=3);}}
   else{$('side-l').textContent=tx('Beste');$('side').classList.remove('low');$('side').innerHTML='';$('side').append(fmt(S.best));if(S.recordHit)$('side').append(el('span','tag',tx('NIEUW')));fitText($('side'));}
   fxHeat(S.combo);
   const m=S.combo>1?S.combo:0;
@@ -1578,7 +1613,7 @@ function hud(){
   $('fill').style.width=Math.min(S.combo,COMBO_FIRE)/COMBO_FIRE*100+'%';
   document.querySelector('#s-game .meter').classList.toggle('fire',S.combo>=COMBO_FIRE);
   $('vs').hidden=S.mode!=='duel';
-  cv.classList.toggle('lastmove',S.mode==='camp'&&S.movesLeft===1&&!S.over);
+  cv.classList.toggle('lastmove',S.mode==='camp'&&!!S.lvl.moves&&S.movesLeft===1&&!S.over);
   if(S.mode==='duel'){
     const g=S.duel.ghost,op=g&&g.length?g[Math.min(duelSec(),g.length-1)]??0:null;
     $('vs-me').textContent=tx('Jij')+' '+fmt(disp);
@@ -1752,6 +1787,7 @@ function renderCamp(){
     b.setAttribute('aria-label',locked?tx('Level {n}, vergrendeld',{n}):tx('Level {n}, {s} sterren',{n,s:CAMP.s[n]||0}));
     b.append(el('span','num',String(i+1)));if(locked)b.append(el('span','lk','🔒'));
     if(!locked)b.append(starRow(CAMP.s[n]||0,'stars'));
+    if(levelPlan(m,i).limit!=='moves'){const tm=el('span','tm','⏱');tm.title=tx('Tijdlevel');b.append(tm);}
     if(i%5===4)b.classList.add('boss');if(i===MAPSIZE-1)b.classList.add('final');
     if(n%3===0){b.classList.add('chest');if(WAL.chests[n])b.classList.add('got');}
     const fr=friendsAt[n];
@@ -1769,15 +1805,19 @@ function renderCamp(){
 // clear instructions before every level: goal, moves, obstacle and a tip
 function levelIntro(n){
   const lv=makeLevel(n),mp=MAPS[lv.m],list=el('div','goallist');
-  lv.goals.forEach(g=>{const r=el('div','gl');r.append(goalIcon(g,30),el('span',null,goalText(g,lv)));list.append(r);});
+  list.className='lvgoals';
+  lv.goals.forEach(g=>{const r=el('div','lvchip');r.append(goalIcon(g,26),el('span',null,goalText(g,lv)));list.append(r);});
   const tag=lv.boss?tx('Eindbaas'):lv.hard?tx('pittig level'):'';
-  const nodes=[el('h2',null,tx('Level {n}',{n:lv.i+1})),el('p',null,tx(mp.name)+(tag?' · '+tag:''))];
-  nodes.push(el('p','sec2',tx('Doel')),list,el('p','movesline',tx('{n} zetten',{n:lv.moves})));
-  const ob=el('div','tipbox obbox');ob.append(obIcon(lv.m,28),el('span',null,tx(mp.tip)));nodes.push(ob);
-  if(lv.lava)nodes.push(el('p','note',tx('Om de {n} beurten komt er een lavarij bij.',{n:lv.lava})));
-  if(lv.bombDrop)nodes.push(el('p','note',tx('Om de {n} beurten landt er een nieuwe tijdbom.',{n:lv.bombDrop})));
-  if(lv.drop)nodes.push(el('p','note',tx('Om de {n} beurten valt er een steen.',{n:lv.drop})));
-  if(!lv.intro)nodes.push(el('p','tip',tx('Tip: {x}',{x:tx(mp.tips[(lv.i-1)%mp.tips.length])})));
+  // compact: the goal and the limit at a glance; the obstacle is only explained on the first level of a map
+  const nodes=[el('h2',null,tx('Level {n}',{n:lv.i+1})),el('p','lvsub',tx(mp.name)+(tag?' · '+tag:''))];
+  const lim=el('div','lvlimit');if(lv.moves)lim.append(el('span',null,tx('{n} zetten',{n:lv.moves})));
+  if(lv.time)lim.append(el('span',null,'⏱ '+Math.floor(lv.time/60)+':'+String(lv.time%60).padStart(2,'0')));
+  nodes.push(list,lim);
+  if(lv.time)nodes.push(el('p','note lvrule',tx('De klok start bij je eerste zet.')));
+  if(lv.intro){const ob=el('div','tipbox obbox');ob.append(obIcon(lv.m,28),el('span',null,tx(mp.tip)));nodes.push(ob);}
+  const rule=lv.lava?tx('Om de {n} beurten komt er een lavarij bij.',{n:lv.lava}):lv.bombDrop?tx('Om de {n} beurten landt er een nieuwe tijdbom.',{n:lv.bombDrop})
+    :lv.drop?tx('Om de {n} beurten valt er een steen.',{n:lv.drop}):'';
+  if(rule)nodes.push(el('p','note lvrule',rule));
   if(CAMP.s[n])nodes.push(starRow(CAMP.s[n],'stars-mid'));
   // boosters before the level: the player picks which ones to use; a win streak of 3 gives a free Start-Rocket
   const pick={},box=el('div','boosts');
@@ -1807,13 +1847,16 @@ async function startRocket(free,pick){
   pop(tx('Start-Raket!'),PAD+c*CS+CS/2,PAD+r*CS-8,'info','#e07c00',18,t);at(t,sfx.make);return true;
 }
 function winLevel(){
-  const left=S.movesLeft,G=S;
+  const left=S.lvl.moves?Math.max(0,S.movesLeft):0,secs=S.lvl.time?Math.floor(S.timeLeft/1000):0,G=S;
   pop(tx('LEVEL GEHAALD!'),W/2,PAD+BOARD*.42,'callout');sfx.cheer(3);confetti(110);buzz([40,40,80]);
   setTimeout(()=>{
     if(G!==S)return;
-    if(left>0){const bonus=left*MOVE_BONUS;S.score+=bonus;S.shown+=bonus;bump();
-      pop('+'+fmt(bonus),W/2,PAD+BOARD*.6,'score',null,52);pop(tx(left===1?'{n} zet over × {p}':'{n} zetten over × {p}',{n:left,p:fmt(MOVE_BONUS)}),W/2,PAD+BOARD*.6+40,'info','#e07c00');S.movesLeft=0;hud();}
-    setTimeout(()=>{if(G!==S)return;finale(()=>{S.shown=S.score;S.over=true;finishLevel();});},left>0?1100:0);
+    if(left>0||secs>0){const bonus=left*MOVE_BONUS+secs*TIME_BONUS;S.score+=bonus;S.shown+=bonus;bump();
+      pop('+'+fmt(bonus),W/2,PAD+BOARD*.6,'score',null,52);
+      if(left>0)pop(tx(left===1?'{n} zet over × {p}':'{n} zetten over × {p}',{n:left,p:fmt(MOVE_BONUS)}),W/2,PAD+BOARD*.6+40,'info','#e07c00');
+      if(secs>0)pop(tx(secs===1?'{n} seconde over × {p}':'{n} seconden over × {p}',{n:secs,p:fmt(TIME_BONUS)}),W/2,PAD+BOARD*.6+(left>0?64:40),'info','#e07c00');
+      S.movesLeft=0;S.timeLeft=0;hud();}
+    setTimeout(()=>{if(G!==S)return;finale(()=>{S.shown=S.score;S.over=true;finishLevel();});},left>0||secs>0?1100:0);
   },1500);
 }
 function medalCard(m,fresh,next){
@@ -1859,13 +1902,14 @@ function loseLevel(kind){
   const lv=S.lvl,todo=el('div','goallist');
   campProgress(lv.m,freshStats());
   lv.goals.forEach(g=>{const left=goalLeft(S,g);if(!left)return;const r=el('div','gl');r.append(goalIcon(g,26),el('span',null,tx(g.t==='score'?'Nog {n} punten':'Nog {n}',{n:g.t==='score'?fmt(left):left})));todo.append(r);});
-  const title={moves:tx('Geen zetten meer'),space:tx('Bord zit vol'),bomb:tx('Boem! Een tijdbom ontplofte'),lava:tx('De lava raakte de top')}[kind];
+  const title={time:tx('De tijd is op'),moves:tx('Geen zetten meer'),space:tx('Bord zit vol'),bomb:tx('Boem! Een tijdbom ontplofte'),lava:tx('De lava raakte de top')}[kind];
   const nodes=[el('h2',null,title),el('p',null,tx('Bijna! Dit moest nog:')),todo];
   const resume=()=>{S.over=false;S.lock=false;closeCard();if(S.tray.every(x=>!x))refillFx(refillG(S));hud();renderTools();
     if(trayStuck(S)){S.lock=true;setTimeout(()=>loseLevel('space'),600);}};
   // what "play on" does for each way of losing (the same with a heart or with a video)
   const playOn=()=>{
     if(kind==='moves'){S.movesLeft+=5;resume();pop(tx('+5 zetten!'),W/2,PAD+BOARD/2,'callout');}
+    else if(kind==='time'){S.timeLeft+=30000;S.timeUp=false;S.shownSec=null;resume();pop(tx('+30 seconden!'),W/2,PAD+BOARD/2,'callout');}
     else if(kind==='space'){freshTray();resume();sfx.make();pop(tx('3 nieuwe blokken!'),W/2,PAD+BOARD/2,'callout');}
     else if(kind==='bomb'){S.boom=null;for(let r=0;r<N;r++)for(let c=0;c<N;c++){const x=S.grid[r][c];if(x&&x.bomb)x.bomb+=5;}
       resume();pop(tx('+5 voor elke tijdbom!'),W/2,PAD+BOARD/2,'callout');}
@@ -2796,6 +2840,16 @@ function duelTick(){
   if(left<=0){S.timeUp=true;S.lock=true;drag=null;pop(tx('Tijd op!'),W/2,PAD+BOARD*.45,'callout');buzz([60,40,60]);setTimeout(endGame,900);}
 }
 setInterval(duelTick,200);
+let campT=Date.now();
+function campTick(){
+  const t=Date.now(),dt=Math.min(1000,t-campT);campT=t;
+  if(!S||S.mode!=='camp'||!S.lvl||!S.lvl.time||!S.clockOn||S.over||S.timeUp||screen!=='game'||document.hidden||!ov.hidden||levelWon(S))return;
+  S.timeLeft=Math.max(0,S.timeLeft-dt);
+  const sec=Math.ceil(S.timeLeft/1000);if(sec!==S.shownSec){S.shownSec=sec;hud();if(sec<=5&&sec>0)sfx.warn();}
+  if(S.timeLeft<=0){S.timeUp=true;S.lock=true;drag=null;pop(tx('Tijd op!'),W/2,PAD+BOARD*.45,'callout');buzz([60,40,60]);
+    const G=S;setTimeout(()=>{if(G===S&&!S.over&&!levelWon(S))loseLevel('time');},900);}
+}
+setInterval(campTick,200);
 function duelUpdate(d){
   const o=oppOf(d),g=o&&d.r&&d.r[o];
   S.duel.opp=o;S.duel.oppName=o?nickOf(o):'';

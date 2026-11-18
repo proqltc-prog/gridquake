@@ -529,6 +529,26 @@ async function runAll(){
       return {pass:!!ok,detail:sub?sub.fn+' '+sub.schema+' '+p.length:'geen indiening'};}
     finally{G().API.call=call;N.db=keep.db;N.player=keep.player;close();G().show('menu');}
   });
+  await t('U38','UAT','Tijdlevel: klok start pas bij de eerste zet, pauzeert bij een kaart, bij 0 verlies je op tijd en verder spelen geeft +30 s',async()=>{
+    setWallet(0,{hart:1});close();await G().startLevel(29);await wait(300);const S=G().S,L=S.lvl;
+    const lab=$('side-l').textContent,t0=S.timeLeft;await wait(700);const still=S.timeLeft===t0;
+    S.clockOn=true;await wait(900);const runs=S.timeLeft<t0;
+    $('ov').hidden=false;const p=S.timeLeft;await wait(600);const paused=S.timeLeft===p;$('ov').hidden=true;
+    S.timeLeft=600;await wait(2400);const lost=cardText().includes('De tijd is op');
+    cardBtn('❤️').click();await wait(400);const more=S.timeLeft>25000&&!S.over;S.over=true;close();G().show('menu');
+    return {pass:L.plan.limit==='time'&&!L.moves&&L.time>0&&lab==='Tijd'&&still&&runs&&paused&&lost&&more,detail:`${lab} ${L.time}s nog ${Math.round(S.timeLeft/1000)}s`};
+  });
+  await t('U39','UAT','Startbord: level 3 begint met blokken in een vorm',async()=>{
+    close();await G().startLevel(3);await wait(300);const S=G().S;let blocks=0;
+    S.grid.forEach(r=>r.forEach(x=>{if(x&&x.color&&!x.stone&&!x.lock&&!x.bomb)blocks++;}));S.over=true;G().show('menu');
+    return {pass:S.lvl.plan.shape>=0&&blocks>=8,detail:'blokken '+blocks};
+  });
+  await t('U40','UAT','Campagnekaart toont ⏱ bij tijdlevels; beginpagina is kort (geen tip, uitleg alleen bij het eerste level)',async()=>{
+    G().CAMP.s={20:1};await mapOverview(2);const marked=[...document.querySelectorAll('.path .node')].map((b,i)=>b.querySelector('.tm')?i+1:0).filter(Boolean);
+    G().CAMP.s={};close();G().levelIntro(12);await wait(50);const t12=cardText(),ob12=!!document.querySelector('#ovcard .obbox');close();
+    G().levelIntro(21);await wait(50);const ob21=!!document.querySelector('#ovcard .obbox');close();
+    return {pass:marked.join()==='9,14'&&!t12.includes('Tip:')&&!ob12&&ob21,detail:'⏱ op '+marked.join(',')};
+  });
   await pickTheme(0);
   localStorage.removeItem('blockers-wallet');
   G().API.call=realCall;

@@ -14,7 +14,7 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 
 ## Test run 0.7.0 (13 November 2026)
 
-75 of 75 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 + 12 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
+78 of 78 browser tests passed (the wallet against a fake server with the same rules), 37 + 30 + 16 + 12 server tests (`tests/server-wallet.sql`, rolled back) and 11 signature tests (`node tests/ssv.test.mjs`). The 2 manual checks M3-M4 still apply; M1-M2 (wallet data on the device) no longer apply: the wallet is on the server now (N26).
 
 | ID | Type | Test | Result |
 |---|---|---|---|
@@ -93,6 +93,9 @@ The page only exposes the test hook `window.GQ` on `localhost` with `?test=1`, n
 | U35 | UAT | How to play: 6 pages incl. combo, helpers and coins; every page fits the screen | pass |
 | U36 | UAT | Duel: a 3:00 clock instead of a move counter | pass |
 | U37 | UAT | Duel: when time is up the game ends and the score per second (181 values) goes to `gridquake.duel_submit` | pass |
+| U38 | UAT | Time level: the clock starts with the first move, pauses while a card is open; at 0 the level is lost on time and playing on gives +30 s | pass |
+| U39 | UAT | Start board: level 3 starts with blocks in a shape | pass |
+| U40 | UAT | Campaign map shows ⏱ on time levels; the level intro is short (no tip, obstacle explained only on the first level of a map) | pass |
 | M3 | UAT (manual) | Very first start: straight into exercise 1, no questions | pass |
 | M4 | security (manual) | Without `?test=1` the test hook does not exist | pass |
 

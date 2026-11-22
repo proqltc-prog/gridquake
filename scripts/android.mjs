@@ -78,9 +78,11 @@ export function setLiveAds(html) {
   return html.replace('const AD_LIVE=false;', 'const AD_LIVE=true;');
 }
 
-// Adds the AdMob app id to the manifest, once.
+// Puts the AdMob app id in the manifest. An existing id is replaced, so a Play
+// build made after a test build gets the live id (and the other way round).
 export function setAdMobAppId(manifest, id) {
-  if (manifest.includes('com.google.android.gms.ads.APPLICATION_ID')) return manifest;
+  const existing = /(android:name="com\.google\.android\.gms\.ads\.APPLICATION_ID"\s*android:value=")[^"]*(")/;
+  if (existing.test(manifest)) return manifest.replace(existing, `$1${id}$2`);
   return manifest.replace(/(<application[^>]*>)/, `$1\n        <meta-data\n            android:name="com.google.android.gms.ads.APPLICATION_ID"\n            android:value="${id}" />`);
 }
 

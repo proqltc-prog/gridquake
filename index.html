@@ -120,6 +120,13 @@ h2.sec{font-family:var(--display);font-weight:400;font-size:18px;margin:6px 0 0;
 .gtop{display:flex;align-items:center;gap:8px}
 /* game screen: score, goals, combo line, helpers and hint are as wide as the board frame (--fw, set in fitCanvas) */
 #s-game>:not(#cv){width:var(--fw,100%);max-width:100%;margin-inline:auto;box-sizing:border-box}
+/* wide, low screen (tablet held sideways): the hint may use the full column so it stays short and leaves room for the board */
+@media (orientation:landscape){#s-game>#hint{width:100%}}
+/* a low, wide screen during a game: the logo steps aside and the settings button sits in the corner, so the board gets that height */
+@media (orientation:landscape) and (max-height:820px){
+  body:has(#s-game:not([hidden])) header{position:fixed;top:10px;right:14px;z-index:5}
+  body:has(#s-game:not([hidden])) header .logo{display:none}
+}
 .hud{display:grid;grid-template-columns:1.6fr 1fr;gap:8px;flex:1}
 .stat{background:var(--surface);border:1px solid var(--line);box-shadow:0 3px 0 #dfe5f0;border-radius:14px;padding:6px 12px;min-width:0}
 .stat span{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:900}
@@ -1416,8 +1423,10 @@ const buzz=ms=>{if(!vibrate)return;try{navigator.vibrate&&navigator.vibrate(ms)}
 let screen='menu';
 function fitCanvas(){
   if(screen!=='game')return;cv.style.width='';
-  // the helper row under the blocks must stay on the screen: its height is taken off the room for the board
-  const tb=$('tools'),below=tb.hidden?0:tb.offsetHeight+6;
+  // the helper row under the blocks must stay on the screen: its height is taken off the room for the board.
+  // On a wide screen (tablet or foldable held sideways) the hint line under it must fit too; phones keep the bigger board.
+  const tb=$('tools'),hn=$('hint'),wide=innerWidth>innerHeight;
+  const below=(tb.hidden?0:tb.offsetHeight+6)+(wide&&!hn.hidden&&hn.offsetHeight?hn.offsetHeight+18:0);
   const top=cv.getBoundingClientRect().top+scrollY,room=(innerHeight-top-10-below)*W/H,full=cv.parentElement.clientWidth;
   const cw=Math.max(200,Math.min(full,room));cv.style.width=cw+'px';
   $('s-game').style.setProperty('--fw',(cw*FRAME/W).toFixed(1)+'px');

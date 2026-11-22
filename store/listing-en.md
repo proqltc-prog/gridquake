@@ -46,4 +46,4 @@ Privacy policy: https://proqltc-prog.github.io/gridquake/privacy.html
 ## Graphics
 - App icon: `store/icon-512.png` (512×512)
 - Feature graphic: `store/feature-1024x500.png` (1024×500)
-- Phone screenshots: `store/screenshots/en/1.png` … `6.png` (1080×2160)
+- Phone screenshots: `store/screenshots/en/1.png` … `6.png` (1080×1920, 9:16 as Google Play requires)

@@ -35,6 +35,15 @@ export function setPortrait(manifest) {
   return manifest.replace('<activity', '<activity\n            android:screenOrientation="portrait"\n            android:windowSoftInputMode="adjustNothing"');
 }
 
+// The portrait lock makes Google Play assume the app needs a portrait screen
+// and hide it from landscape-only devices (Chromebooks in a dock, Play Games on
+// PC, XR). Declaring both screen features as optional keeps the app on every
+// device; phones still show it upright.
+export function setScreenFeatures(manifest) {
+  if (manifest.includes('android.hardware.screen.portrait')) return manifest;
+  return manifest.replace(/(\s*<application)/, `\n    <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />\n    <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />\n$1`);
+}
+
 // Test builds are signed with the fixed test key in android-assets, so a new
 // test version installs over the previous one. This is a test key, not the
 // Play key; the passwords are Android's standard debug values.
@@ -104,7 +113,7 @@ function applySettings(appId, version, release) {
   const app = join(ROOT, 'android', 'app');
   const main = join(app, 'src', 'main');
   edit(join(app, 'build.gradle'), (g) => setTestSigning(setVersion(g, version)));
-  edit(join(main, 'AndroidManifest.xml'), (m) => setAdMobAppId(setPortrait(m), admobAppId(release)));
+  edit(join(main, 'AndroidManifest.xml'), (m) => setScreenFeatures(setAdMobAppId(setPortrait(m), admobAppId(release))));
   // Full screen: our MainActivity hides the status and navigation bars.
   const activity = join(main, 'java', ...appId.split('.'), 'MainActivity.java');
   writeFileSync(activity, readFileSync(join(ROOT, 'android-assets', 'MainActivity.java'), 'utf8').replace('PACKAGE', appId));

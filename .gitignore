@@ -11,3 +11,6 @@ android/
 *token*.txt
 client_secret*.json
 sleutels/
+
+# local deliveries (APK/AAB), never in git
+versies/

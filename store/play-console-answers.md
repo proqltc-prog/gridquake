@@ -3,7 +3,7 @@
 What the app really does, as the basis for the forms in Play Console (section "App content" / "Policy"). The owner fills in the forms; the exact screens are walked through step by step.
 
 ## App details
-- App name: Gridquake: Block Puzzle
+- App name: Gridquake: Block Puzzle Game
 - Default language: English (United States), en-US
 - App or game: Game · Free
 - Category: Puzzle

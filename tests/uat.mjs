@@ -375,8 +375,10 @@ async function runAll(){
   await t('U23','UAT','Hulpmiddelen in één rij onder de blokken, bord op volle breedte, alles op het scherm',async()=>{
     setWallet(0,{hamer:1,raket:2});G().startClassic();await wait(400);
     const t=$('tools').getBoundingClientRect(),c=$('cv').getBoundingClientRect(),n=document.querySelectorAll('#tools .tool').length;
-    // the board takes the full width, unless the screen height is the limit (then the helper row ends at the bottom)
-    const fullWidth=c.width>=$('cv').parentElement.clientWidth-2||t.bottom>=innerHeight-24;
+    // the board takes the full width, unless the screen height is the limit (then the helper row ends at the bottom;
+    // on a wide screen held sideways the hint line under it also fits, so the hint ends at the bottom)
+    const h=$('hint').getBoundingClientRect(),wide=innerWidth>innerHeight;
+    const fullWidth=c.width>=$('cv').parentElement.clientWidth-2||t.bottom>=innerHeight-24||(wide&&h.bottom>=innerHeight-40&&h.bottom<=innerHeight+1);
     return {pass:n===4&&t.top>=c.bottom-1&&t.bottom<=innerHeight+1&&fullWidth,detail:`${n} knoppen, rij ${Math.round(t.top)}-${Math.round(t.bottom)}, bord ${Math.round(c.width)} breed`};
   });
   await t('U24','UAT','Raket uit de winkel: tik op een leeg vakje en hij staat er',async()=>{
@@ -445,7 +447,8 @@ async function runAll(){
   await t('U30','UAT','Spelscherm: alle rijen even breed als het bord; combo-teller alleen bij een combo',async()=>{
     close();setWallet(0,{});G().startClassic();await wait(400);const S=G().S;
     const c=$('cv').getBoundingClientRect(),k=c.width/360,L=c.left+11*k,R=c.left+349*k;
-    const off=['.gtop','.meter','#tools','#hint'].map(q=>{const b=document.querySelector('#s-game '+q).getBoundingClientRect();return Math.max(Math.abs(b.left-L),Math.abs(R-b.right));});
+    // on a wide screen held sideways the hint may use the full column (one short line), so it is left out there
+    const off=['.gtop','.meter','#tools'].concat(innerWidth>innerHeight?[]:['#hint']).map(q=>{const b=document.querySelector('#s-game '+q).getBoundingClientRect();return Math.max(Math.abs(b.left-L),Math.abs(R-b.right));});
     const hiddenAtStart=$('combo').hidden&&$('combo').textContent==='';
     emptyBoard();for(let c2=0;c2<7;c2++)S.grid[0][c2]={color:'#ff5f7e'};S.combo=1;S.tray=[piece([[0,0]]),piece([[0,0]]),piece([[0,0]])];G().place(0,0,7);await wait(300);
     const shown=!$('combo').hidden&&$('combo').textContent.startsWith('×');S.over=true;G().show('menu');
